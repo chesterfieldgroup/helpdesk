@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chesterfield IT Help Desk</title>
+</head>
+<body>
+
+<div class="container">
+  <div class="help-desk-header text-center">
+    <h1>Chesterfield IT Help Desk</h1>
+    <p>Welcome to the brand new IT Help Desk. Please enter in as much detail as possible of the issue experienced</p>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <!-- IT Troubleshooting Form -->
+      <h2>Troubleshooting Request</h2>
+      <form>
+        <div class="form-group">
+          <label for="name">Your Name:</label>
+          <input type="text" class="form-control" id="name" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address:</label>
+          <input type="email" class="form-control" id="email" required>
+        </div>
+        <div class="form-group">
+          <label for="issueType">Type of Issue:</label>
+          <select class="form-control" id="issueType">
+            <option>Computer/Laptop</option>
+            <option>Network/Internet</option>
+            <option>Email/Communication</option>
+            <option>Software/Application</option>
+            <option>Printer/Scanner</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="description">Issue Description:</label>
+          <textarea class="form-control" id="description" rows="5" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Request</button>
+      </form>
+    </div>
+
+    <div class="col-md-6">
+      <!-- Contact Information -->
+      <h2>Contact Information</h2>
+      <p>If you need immediate assistance, please contact our help desk:</p>
+      <ul>
+        <li>Phone: 1-800-555-HELP (4357)</li>
+        <li>Email: support@ithelpdesk.com</li>
+        <li>Live Chat: Available on our website</li>
+      </ul>
+
+      <h2>Self-Service Resources</h2>
+      <p>Visit our online resources for FAQs and troubleshooting guides:</p>
+      <ul>
+        <li><a href="#">FAQs</a></li>
+        <li><a href="#">Troubleshooting Guides</a></li>
+        <li><a href="#">Support Forums</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>&copy; 2023 IT Help Desk Service. All rights reserved.</p>
+  </div>
+</div>
+</body>
+</html>
