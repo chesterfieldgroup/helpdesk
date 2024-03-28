@@ -1,0 +1,63 @@
+/* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4; /* Light grey background */
+    color: #333; /* Dark text for readability */
+}
+
+/* Navigation Bar Customization */
+nav.navbar {
+    background-color: #003366; /* Dark blue, characteristic of H.W. Kaufman's palette */
+}
+
+nav.navbar .nav-link {
+    color: #ffffff; /* White text for contrast */
+}
+
+nav.navbar .nav-link:hover {
+    color: #FFD700; /* Gold color for hover state */
+}
+
+/* Footer Customization */
+footer.bg-dark {
+    background-color: #002855; /* A slightly darker shade of blue for the footer */
+    color: #ffffff;
+}
+
+/* Custom Logo Space */
+.logo-container {
+    display: flex;
+    justify-content: space-around; /* Evenly space logos */
+    align-items: center; /* Align logos vertically */
+    padding: 1rem;
+    background-color: #ffffff; /* White background for logos */
+    margin-bottom: 1rem;
+}
+
+.logo {
+    max-width: 100px; /* Restrict logo size */
+    height: auto;
+    margin: 0 15px; /* Space around each logo */
+}
+
+/* Custom Button Styling */
+.btn-primary {
+    background-color: #0055A4; /* Blue color for buttons */
+    border-color: #0055A4;
+}
+
+.btn-primary:hover {
+    background-color: #003366; /* Darker blue on hover */
+    border-color: #003366;
+}
+
+/* Section Customization */
+section {
+    background-color: #ffffff; /* White background for sections */
+    border: 1px solid #ddd; /* Subtle borders for sections */
+    padding: 15px;
+    border-radius: 5px; /* Rounded borders */
+    margin-bottom: 20px;
+}
+
+/* Additional Custom Styles as Needed */
