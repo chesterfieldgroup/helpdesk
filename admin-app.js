@@ -1,5 +1,5 @@
 new Vue({
-    el: '#admin',
+    el: '#admin-app',
     data: {
         queries: [] // Initialize queries as an empty array
     },

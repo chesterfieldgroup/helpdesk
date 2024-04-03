@@ -60,4 +60,63 @@ section {
     margin-bottom: 20px;
 }
 
-/* Additional Custom Styles as Needed */
+@media (max-width: 768px) {
+    /* Stack table headers for smaller screens */
+    .table thead {
+        display: none; /* Hide table headers */
+    }
+
+    /* Display table data like a card layout */
+    .table tbody tr {
+        display: block;
+        margin-bottom: .625rem;
+        border-radius: .3rem;
+    }
+
+    /* Make table cells display like block */
+    .table td {
+        display: block;
+        text-align: right;
+    }
+
+    /* Style the ::before pseudo-element to show the data label */
+    .table td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    /* Style the detail list to be more compact */
+    .table td ul {
+        padding-left: 20px;
+    }
+
+    .table td ul li {
+        display: inline; /* Display the list items inline */
+        margin-right: 10px;
+    }
+
+    /* Adjust padding and text sizes for readability */
+    body {
+        padding: 0 5px;
+        font-size: 14px; /* Larger font size for readability */
+    }
+    
+    /* Adjust padding for form inputs and textareas */
+    .form-control {
+        padding: .375rem .75rem;
+    }
+    
+    /* Larger buttons for easier interaction */
+    .btn {
+        padding: .5rem 1rem;
+    }
+    
+    /* Custom styles for navbar toggler */
+    .navbar-toggler {
+        padding: .25rem .75rem;
+        font-size: 1.25rem;
+    }
+}
+
