@@ -1,0 +1,33 @@
+[
+    {
+      "id": "req-001",
+      "user": "scotton@chesterfieldgroup.co.uk",
+      "timestamp": "2024-04-03T10:00:00Z",
+      "subject": "Cannot access VPN",
+      "detail": "I've been trying to connect to the VPN from my home office, but keep receiving an authentication error.",
+      "screenshots": ["vpn-error-msg.jpg"],
+      "status": "Open",
+      "resolvement": ""
+    },
+    {
+      "id": "req-002",
+      "user": "scotton@chesterfieldgroup.co.uk",
+      "timestamp": "2024-04-03T11:30:00Z",
+      "subject": "Email account locked",
+      "detail": "My email account seems to be locked out. I attempted my password too many times. Need a reset.",
+      "screenshots": ["email-locked-out.png", "reset-attempts.docx"],
+      "status": "In Progress",
+      "resolvement": ""
+    },
+    {
+      "id": "req-003",
+      "timestamp": "2024-04-03T14:45:00Z",
+      "user": "scotton@chesterfieldgroup.co.uk",
+      "subject": "Printer connectivity issue",
+      "detail": "The printer on the 3rd floor is not connecting to the network. Tried restarting it with no luck.",
+      "screenshots": [],
+      "status": "Resolved",
+      "resolvement": "Connected to new wifi"
+    }
+  ]
+  
