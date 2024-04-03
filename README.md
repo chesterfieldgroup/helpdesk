@@ -13,6 +13,6 @@ The IT Support Hub is a streamlined web portal designed to facilitate efficient 
 
 ## TODO
 
-- **Node.js:** Create a backend so that the form can push data to the json database.
+- **Node.js:** Create a backend so that the form can push data to the json database. Ensure it is built to be secure and isn't vulnerable to CSRF, XSS, and file upload vulnerabilities.
 - **Azure Oauth:** Need to ensure that only users signed in with mircosoft accounts tied to @chesterfieldgroup can submit a form request, and so that only Sean and Jack can only access admin.
 - **Screenshots:** Add functionality so that users can use snip and cut to paste images into the form which can be viewed via the admin table.
