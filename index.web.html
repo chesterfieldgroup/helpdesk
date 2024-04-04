@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <link rel="icon" type="image/png" sizes="32x32" href="./img/favicon.ico">
-
     <title>IT Support Hub</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <!-- Custom Style -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body>YY4r£6q1
 
     <div class="logo-container">
         <img src="./img/kfg-logo-lg.jpg" alt="H.W. Kaufman Logo" class="logo">
@@ -29,7 +27,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
-                    
+                    <a class="nav-link" href="admin.html">Admin</a>
                 </li>
             </ul>
         </div>
@@ -37,18 +35,29 @@
 
     <!-- Main Content -->
     <div class="container mt-4">
-        <p>Please fill in the below form for any IT queries you may have:</p>
+        <h2>IT Support Request Form</h2>
+        <p>If you have any IT problems, please fill out and submit this form. Sean and Jack will use it to keep track of and fix issues. We will reach out via email or telephone after your submission via this platform.</p>
 
-        <!-- IT Support Queries -->
-        <section id="support-queries" class="mt-4">
-            <div class="embed-responsive embed-responsive-16by9">
-                <iframe width="640px" height="480px" src="https://forms.office.com/e/M4CNfuTuF5?embed=true" frameborder="0" marginwidth="0" marginheight="0" style="border: none; max-width:100%; max-height:100vh" allowfullscreen webkitallowfullscreen mozallowfullscreen msallowfullscreen> </iframe>
+        <form>
+            <div class="form-group">
+                <label for="subject">Subject of the Problem (Required)</label>
+                <input type="text" class="form-control" id="subject" placeholder="Enter the subject of your problem" required>
             </div>
-        </section>
+            <div class="form-group">
+                <label for="detail">Detail of the Problem (Required)</label>
+                <textarea class="form-control" id="detail" rows="3" placeholder="Describe the problem in detail" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="screenshots">Upload Screenshots (If Applicable)</label>
+                <input type="file" class="form-control-file" id="screenshots" multiple accept=".docx,.xlsx,.pptx,.pdf,image/*,video/*,audio/*">
+                <small class="form-text text-muted">File number limit: 10, Single file size limit: 1GB, Allowed file types: Word, Excel, PPT, PDF, Image, Video, Audio</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
     </div>
 
     <!-- Footer -->
-    <footer class="text-white text-center py-3 mt-4">
+    <footer class="text-center py-3 mt-4">
         <p>&copy; 2023 H.W. Kaufman Group IT Support. All rights reserved.</p>
     </footer>
 
