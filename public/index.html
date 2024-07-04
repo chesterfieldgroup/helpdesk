@@ -3,22 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" sizes="32x32" href="./img/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon.ico">
     <title>IT Support Hub</title>
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <!-- Custom Style -->
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
-
     <div class="logo-container">
-        <img src="./img/kfg-logo-lg.jpg" alt="H.W. Kaufman Logo" class="logo">
-        <img src="./img/chester.jpg" alt="Chesterfield Group Logo" class="logo">
-        <img src="./img/burns.svg" alt="Burns & Wilcox Logo" class="logo">
+        <img src="img/kfg-logo-lg.jpg" alt="H.W. Kaufman Logo" class="logo">
+        <img src="img/chester.jpg" alt="Chesterfield Group Logo" class="logo">
+        <img src="img/burns.svg" alt="Burns & Wilcox Logo" class="logo">
     </div>
-    
-    <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <a class="navbar-brand" href="#">IT Support Hub</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -27,43 +22,45 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="admin.html">Admin</a>
+                    <a class="nav-link" href="/admin">Admin</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin">FAQ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin">Play Pong</a>
                 </li>
             </ul>
         </div>
     </nav>
-
-    <!-- Main Content -->
-    <div class="container mt-4">
+    <div class="container mt-4" id="app">
         <h2>IT Support Request Form</h2>
         <p>If you have any IT problems, please fill out and submit this form. Sean and Jack will use it to keep track of and fix issues. We will reach out via email or telephone after your submission via this platform.</p>
-
-        <form>
+        <form id="support-form" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="subject">Subject of the Problem (Required)</label>
-                <input type="text" class="form-control" id="subject" placeholder="Enter the subject of your problem" required>
+                <input type="text" class="form-control" id="subject" name="subject" placeholder="Enter the subject of your problem" required>
             </div>
             <div class="form-group">
                 <label for="detail">Detail of the Problem (Required)</label>
-                <textarea class="form-control" id="detail" rows="3" placeholder="Describe the problem in detail, copy and paste any error messages" required></textarea>
+                <textarea class="form-control" id="detail" name="detail" rows="3" placeholder="Describe the problem in detail, copy and paste any error messages" required></textarea>
             </div>
             <div class="form-group">
                 <label for="screenshots">Upload Screenshots (If Applicable)</label>
-                <input type="file" class="form-control-file" id="screenshots" multiple accept=".docx,.xlsx,.pptx,.pdf,image/*,video/*,audio/*">
+                <input type="file" class="form-control-file" id="screenshots" name="screenshots" multiple accept=".docx,.xlsx,.pptx,.pdf,image/*,video/*,audio/*">
                 <small class="form-text text-muted">File number limit: 10, Single file size limit: 1GB, Allowed file types: Word, Excel, PPT, PDF, Image, Video, Audio</small>
             </div>
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
+        <div id="response-message" class="mt-4"></div>
     </div>
-
-    <!-- Footer -->
-    <footer class="text-center py-3 mt-4">
+    <footer class="text-center py-3 mt-4 bg-dark">
         <p>&copy; 2023 H.W. Kaufman Group IT Support. All rights reserved.</p>
     </footer>
 
-    <!-- Bootstrap JavaScript -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
