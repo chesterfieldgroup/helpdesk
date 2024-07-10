@@ -52,10 +52,12 @@
                             </li>
                         </ul>
                     </td>
-                    <td>{{ query.status }}</td>
-                    <td>{{ query.resolvement }}</td>
+                    <td @click="updateStatus(query)" :style="{ color: statusColor(query.status) }">{{ query.status }}</td>
+                    <td>
+                        <input v-model="query.resolvement" @blur="updateResolvement(query)" placeholder="Enter resolvement detail">
+                    </td>
                 </tr>
-            </tbody>
+            </tbody>            
         </table>
     </div>
 </div>

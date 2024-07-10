@@ -11,6 +11,7 @@ dotenv.config();
 
 const app = express();
 const port = 3000;
+app.use(express.json());
 
 // Rate limiting middleware
 const limiter = rateLimit({
@@ -27,7 +28,18 @@ app.use(session({
 }));
 
 // Configure Multer for handling file uploads
-const upload = multer({ dest: 'uploads/' });
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/')  // files will be saved in the 'uploads' directory
+    },
+    filename: function (req, file, cb) {
+        // files will have the original file extension
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+    }
+});
+
+const upload = multer({ storage: storage });
+
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
@@ -102,6 +114,31 @@ app.get('/api/queries', (req, res) => {
     }
     res.json(data);
 });
+
+app.post('/api/update-query/:id', (req, res) => {
+    const { id } = req.params;
+    const { status, resolvement } = req.body;
+  
+    const filePath = path.join(__dirname, 'queries.json');
+    let data = [];
+  
+    try {
+      data = require(filePath);
+      const queryIndex = data.findIndex(q => q.id === id);
+      if(queryIndex !== -1) {
+        data[queryIndex].status = status;
+        data[queryIndex].resolvement = resolvement;
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+        res.json({ message: 'Query updated successfully!' });
+      } else {
+        res.status(404).send('Query not found');
+      }
+    } catch (err) {
+      console.error('Error updating query:', err);
+      res.status(500).send('Internal server error');
+    }
+  });
+  
 
 // Start the server
 app.listen(port, () => {
