@@ -40,15 +40,15 @@ footer.bg-dark {
     margin: 0 15px; /* Space around each logo */
 }
 
-/* Custom Button Styling */
-.btn-primary {
-    background-color: #0055A4; /* Blue color for buttons */
-    border-color: #0055A4;
+.btn-info {
+    color: #000000;
+    background-color: #ffffff;
+    border-color: #000000;
+    padding: 0.2rem;
 }
 
-.btn-primary:hover {
-    background-color: #003366; /* Darker blue on hover */
-    border-color: #003366;
+.img-thumbnail {
+    margin-top: 1rem;
 }
 
 /* Section Customization */
@@ -59,6 +59,20 @@ section {
     border-radius: 5px; /* Rounded borders */
     margin-bottom: 20px;
 }
+
+.resolvement-input {
+    width: 100%; /* Keep the width constant */
+    height: auto; /* Adjust height automatically */
+    min-height: 20px; /* Minimum height */
+    overflow-y: hidden; /* Prevent vertical scrollbar */
+    resize: none; /* Disable manual resizing */
+    border: none; /* Remove border for aesthetics */
+    outline: none; /* Remove focus outline */
+    background: transparent; /* Transparent background */
+    padding: 5px; /* Padding for text inside textarea */
+    box-shadow: none; /* Remove box shadow if any */
+}
+
 
 @media (max-width: 768px) {
     /* Stack table headers for smaller screens */
@@ -90,6 +104,11 @@ section {
     /* Style the detail list to be more compact */
     .table td ul {
         padding-left: 20px;
+    }
+
+    .no-focus:focus {
+        outline: none;
+        box-shadow: none;
     }
 
     .table td ul li {

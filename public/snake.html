@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Responsive Snake Game</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: black;
+      color: white;
+    }
+    canvas {
+      border: 1px solid white;
+    }
+    #scoreboard {
+      margin: 20px;
+      text-align: center;
+    }
+    #startButton {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: green;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #gameOver {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="scoreboard">
+    <h1>Snake Game</h1>
+    <label for="username">Enter Username: </label>
+    <input type="text" id="username" name="username">
+    <button id="startButton">Start Game</button>
+  </div>
+  <canvas width="400" height="400" id="game"></canvas>
+  <div id="gameOver">
+    <h2>Game Over!</h2>
+    <p id="finalScore"></p>
+    <h3>Leaderboard</h3>
+    <ol id="leaderboard"></ol>
+    <button id="restartButton">Play Again</button>
+  </div>
+  <script>
+    var canvas = document.getElementById('game');
+    var context = canvas.getContext('2d');
+    var startButton = document.getElementById('startButton');
+    var restartButton = document.getElementById('restartButton');
+    var usernameInput = document.getElementById('username');
+    var gameOverDiv = document.getElementById('gameOver');
+    var finalScoreText = document.getElementById('finalScore');
+    var leaderboardList = document.getElementById('leaderboard');
+
+    var grid = 16;
+    var count = 0;
+    var score = 0;
+
+    var snake = {
+      x: 160,
+      y: 160,
+      dx: grid,
+      dy: 0,
+      cells: [],
+      maxCells: 4
+    };
+    var apple = {
+      x: 320,
+      y: 320
+    };
+
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min)) + min;
+    }
+
+    function resetGame() {
+      snake.x = 160;
+      snake.y = 160;
+      snake.cells = [];
+      snake.maxCells = 4;
+      snake.dx = grid;
+      snake.dy = 0;
+      score = 0;
+      apple.x = getRandomInt(0, 25) * grid;
+      apple.y = getRandomInt(0, 25) * grid;
+    }
+
+    function updateLeaderboard() {
+      fetch('/api/leaderboard')
+        .then(response => response.json())
+        .then(scores => {
+          leaderboardList.innerHTML = scores.map(score => `<li>${score.username}: ${score.score}</li>`).join('');
+        });
+    }
+
+    function loop() {
+      requestAnimationFrame(loop);
+      if (++count < 4) {
+        return;
+      }
+      count = 0;
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      snake.x += snake.dx;
+      snake.y += snake.dy;
+      if (snake.x < 0) {
+        snake.x = canvas.width - grid;
+      } else if (snake.x >= canvas.width) {
+        snake.x = 0;
+      }
+      if (snake.y < 0) {
+        snake.y = canvas.height - grid;
+      } else if (snake.y >= canvas.height) {
+        snake.y = 0;
+      }
+      snake.cells.unshift({ x: snake.x, y: snake.y });
+      if (snake.cells.length > snake.maxCells) {
+        snake.cells.pop();
+      }
+      context.fillStyle = 'red';
+      context.fillRect(apple.x, apple.y, grid - 1, grid - 1);
+      context.fillStyle = 'green';
+      snake.cells.forEach(function (cell, index) {
+        context.fillRect(cell.x, cell.y, grid - 1, grid - 1);
+        if (cell.x === apple.x && cell.y === apple.y) {
+          snake.maxCells++;
+          score++;
+          apple.x = getRandomInt(0, 25) * grid;
+          apple.y = getRandomInt(0, 25) * grid;
+        }
+        for (var i = index + 1; i < snake.cells.length; i++) {
+          if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
+            gameOver();
+          }
+        }
+      });
+    }
+
+    function gameOver() {
+      var username = usernameInput.value || 'Anonymous';
+      fetch('/api/submit-score', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username: username, score: score })
+      }).then(() => {
+        updateLeaderboard();
+        finalScoreText.textContent = `Your Score: ${score}`;
+        gameOverDiv.style.display = 'block';
+        canvas.style.display = 'none';
+        startButton.style.display = 'none';
+      });
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.which === 37 && snake.dx === 0) {
+        snake.dx = -grid;
+        snake.dy = 0;
+      } else if (e.which === 38 && snake.dy === 0) {
+        snake.dy = -grid;
+        snake.dx = 0;
+      } else if (e.which === 39 && snake.dx === 0) {
+        snake.dx = grid;
+        snake.dy = 0;
+      } else if (e.which === 40 && snake.dy === 0) {
+        snake.dy = grid;
+        snake.dx = 0;
+      }
+    });
+
+    canvas.addEventListener('touchstart', handleTouch);
+    canvas.addEventListener('touchmove', handleTouch);
+
+    function handleTouch(e) {
+      var touch = e.touches[0];
+      var x = touch.clientX - canvas.getBoundingClientRect().left;
+      var y = touch.clientY - canvas.getBoundingClientRect().top;
+      var dx = x - snake.x;
+      var dy = y - snake.y;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0 && snake.dx === 0) {
+          snake.dx = grid;
+          snake.dy = 0;
+        } else if (dx < 0 && snake.dx === 0) {
+          snake.dx = -grid;
+          snake.dy = 0;
+        }
+      } else {
+        if (dy > 0 && snake.dy === 0) {
+          snake.dy = grid;
+          snake.dx = 0;
+        } else if (dy < 0 && snake.dy === 0) {
+          snake.dy = -grid;
+          snake.dx = 0;
+        }
+      }
+    }
+
+    startButton.addEventListener('click', function () {
+      if (usernameInput.value.trim() === '') {
+        alert('Please enter a username');
+        return;
+      }
+      gameOverDiv.style.display = 'none';
+      canvas.style.display = 'block';
+      resetGame();
+      requestAnimationFrame(loop);
+    });
+
+    restartButton.addEventListener('click', function () {
+      gameOverDiv.style.display = 'none';
+      canvas.style.display = 'block';
+      resetGame();
+      requestAnimationFrame(loop);
+    });
+
+    updateLeaderboard();
+  </script>
+</body>
+</html>

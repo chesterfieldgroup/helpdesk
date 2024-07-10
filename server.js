@@ -5,6 +5,7 @@ const path = require('path');
 const multer = require('multer');
 const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
+const leaderboardRouter = require('./leaderboard');
 
 // Load environment variables from .env file
 dotenv.config();
@@ -37,9 +38,7 @@ const storage = multer.diskStorage({
         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
     }
 });
-
 const upload = multer({ storage: storage });
-
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
@@ -74,9 +73,9 @@ app.get('/admin', (req, res) => {
 });
 
 // API endpoint to handle form submission
-app.post('/api/submit-form', checkSubmissionRateLimit, upload.single('screenshots'), (req, res) => {
+app.post('/api/submit-form', checkSubmissionRateLimit, upload.array('screenshots', 10), (req, res) => {
     const { subject, detail } = req.body;
-    const screenshotFiles = req.file ? [`/uploads/${req.file.filename}`] : [];
+    const screenshotFiles = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
 
     const filePath = path.join(__dirname, 'queries.json');
     let data = [];
@@ -117,28 +116,31 @@ app.get('/api/queries', (req, res) => {
 
 app.post('/api/update-query/:id', (req, res) => {
     const { id } = req.params;
-    const { status, resolvement } = req.body;
+    const { status, resolvement, engineer } = req.body;  // Add engineer here to be updated
   
     const filePath = path.join(__dirname, 'queries.json');
     let data = [];
   
     try {
-      data = require(filePath);
-      const queryIndex = data.findIndex(q => q.id === id);
-      if(queryIndex !== -1) {
-        data[queryIndex].status = status;
-        data[queryIndex].resolvement = resolvement;
-        fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-        res.json({ message: 'Query updated successfully!' });
-      } else {
-        res.status(404).send('Query not found');
-      }
+        data = require(filePath);
+        const queryIndex = data.findIndex(q => q.id === id);
+        if(queryIndex !== -1) {
+            data[queryIndex].status = status;
+            data[queryIndex].resolvement = resolvement;  // Ensure this is updated
+            data[queryIndex].engineer = engineer;  // Update engineer in the data
+            fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+            res.json({ message: 'Query updated successfully!' });
+        } else {
+            res.status(404).send('Query not found');
+        }
     } catch (err) {
-      console.error('Error updating query:', err);
-      res.status(500).send('Internal server error');
+        console.error('Error updating query:', err);
+        res.status(500).send('Internal server error');
     }
-  });
-  
+});
+
+// Use the leaderboard routes
+app.use('/api', leaderboardRouter);
 
 // Start the server
 app.listen(port, () => {

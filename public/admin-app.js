@@ -1,3 +1,6 @@
+import { format } from 'https://cdn.jsdelivr.net/npm/date-fns@2.23.0/esm/index.js';
+import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js'; // Import Vue as ES module
+
 document.addEventListener('DOMContentLoaded', () => {
     new Vue({
         el: '#admin-app',
@@ -7,14 +10,25 @@ document.addEventListener('DOMContentLoaded', () => {
         created() {
             this.fetchQueries();
         },
+        computed: {
+            hasScreenshots() {
+                return this.queries.some(query => query.screenshots && query.screenshots.length > 0);
+            }
+        },
         methods: {
             async fetchQueries() {
                 try {
                     const response = await fetch('/api/queries');
-                    this.queries = await response.json();
+                    const queries = await response.json();
+                    // Initialize showImage to false for all queries
+                    queries.forEach(query => query.showImage = false);
+                    this.queries = queries;
                 } catch (error) {
                     console.error('Error fetching queries:', error);
                 }
+            },
+            formatTimestamp(timestamp) {
+                return format(new Date(timestamp), 'PPpp');
             },
             isImage(filePath) {
                 return /\.(jpg|jpeg|png|gif)$/i.test(filePath);
@@ -32,6 +46,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     case 'Completed': return 'green';
                     default: return 'black';
                 }
+            },
+            adjustTextareaHeight(event) {
+                const element = event.target;
+                element.style.height = 'auto'; // Reset height to recalculate
+                element.style.height = element.scrollHeight + 'px'; // Set new height based on content
+            },
+            toggleImageVisibility(query) {
+                // This toggles the visibility state of the image in the query object
+                Vue.set(query, 'showImage', !query.showImage);
+            },
+            updateEngineer(query) {
+                const engineers = ["", "Jack", "Sean"];  // Array of possible engineers
+                let currentEngineerIndex = engineers.indexOf(query.engineer);  // Get current index
+                let nextEngineerIndex = (currentEngineerIndex + 1) % engineers.length;  // Calculate next index
+                query.engineer = engineers[nextEngineerIndex];  // Update to the next engineer
+                this.saveQuery(query);  // Save the update
             },
             updateResolvement(query) {
                 this.saveQuery(query);

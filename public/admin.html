@@ -6,7 +6,10 @@
     <title>IT Support Hub - Admin Page</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script type="module">
+        import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js';
+        window.Vue = Vue; // Make Vue globally accessible
+    </script>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -33,6 +36,7 @@
                     <th>Subject</th>
                     <th>Detail</th>
                     <th>Screenshots</th>
+                    <th>Engineer</th>
                     <th>Status</th>
                     <th>Resolvement</th>
                 </tr>
@@ -41,23 +45,30 @@
                 <tr v-for="query in queries" :key="query.id">
                     <td>{{ query.id }}</td>
                     <td>{{ query.user }}</td>
-                    <td>{{ query.timestamp }}</td>
+                    <td>{{ formatTimestamp(query.timestamp) }}</td>
                     <td>{{ query.subject }}</td>
                     <td>{{ query.detail }}</td>
                     <td>
-                        <ul>
-                            <li v-for="screenshot in query.screenshots" :key="screenshot">
-                                <img v-if="isImage(screenshot)" :src="screenshot" class="img-thumbnail" style="max-width: 200px;" />
-                                <a v-else :href="screenshot" target="_blank">View File</a>
-                            </li>
-                        </ul>
+                        <div v-if="query.screenshots && query.screenshots.length > 0">
+                            <button @click="toggleImageVisibility(query)" class="btn btn-info no-focus">Toggle Image</button>
+                            <div v-if="query.showImage">
+                                <ul>
+                                    <li v-for="screenshot in query.screenshots" :key="screenshot">
+                                        <img v-if="isImage(screenshot)" :src="screenshot" class="img-thumbnail" style="max-width: 200px;" />
+                                        <a v-else :href="screenshot" target="_blank">View File</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div v-else>No screenshots</div>
                     </td>
+                    <td @click="updateEngineer(query)">{{ query.engineer || 'Click to Assign Engineer' }}</td>
                     <td @click="updateStatus(query)" :style="{ color: statusColor(query.status) }">{{ query.status }}</td>
                     <td>
-                        <input v-model="query.resolvement" @blur="updateResolvement(query)" placeholder="Enter resolvement detail">
-                    </td>
+                        <textarea v-model="query.resolvement" @blur="updateResolvement(query)" @input="adjustTextareaHeight" class="resolvement-input" placeholder="Enter resolvement detail"></textarea>
+                    </td>                                                         
                 </tr>
-            </tbody>            
+            </tbody>                       
         </table>
     </div>
 </div>
@@ -69,6 +80,6 @@
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-<script src="admin-app.js"></script>
+<script type="module" src="admin-app.js"></script> <!-- Change to module -->
 </body>
 </html>
