@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 Vue.set(query, 'showImage', !query.showImage);
             },
             updateEngineer(query) {
-                const engineers = ["", "Jack", "Sean"];  // Array of possible engineers
+                const engineers = ["Jack", "Sean", "Nik", "Sean + Jack", "Nik + Sean", "Full Squad"];  // Array of possible engineers
                 let currentEngineerIndex = engineers.indexOf(query.engineer);  // Get current index
                 let nextEngineerIndex = (currentEngineerIndex + 1) % engineers.length;  // Calculate next index
                 query.engineer = engineers[nextEngineerIndex];  // Update to the next engineer

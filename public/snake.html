@@ -22,7 +22,7 @@
       margin: 20px;
       text-align: center;
     }
-    #startButton {
+    #startButton, #restartButton {
       margin: 10px;
       padding: 10px 20px;
       font-size: 16px;
@@ -33,6 +33,7 @@
     }
     #gameOver {
       display: none;
+      text-align: center;
     }
   </style>
 </head>
@@ -64,6 +65,7 @@
     var grid = 16;
     var count = 0;
     var score = 0;
+    var speed = 4;
 
     var snake = {
       x: 160,
@@ -90,8 +92,10 @@
       snake.dx = grid;
       snake.dy = 0;
       score = 0;
+      count = 0;
       apple.x = getRandomInt(0, 25) * grid;
       apple.y = getRandomInt(0, 25) * grid;
+      document.getElementById('scoreboard').innerHTML = `Score: ${score}`;
     }
 
     function updateLeaderboard() {
@@ -103,8 +107,8 @@
     }
 
     function loop() {
-      requestAnimationFrame(loop);
-      if (++count < 4) {
+      if (++count < speed) {
+        requestAnimationFrame(loop);
         return;
       }
       count = 0;
@@ -133,6 +137,7 @@
         if (cell.x === apple.x && cell.y === apple.y) {
           snake.maxCells++;
           score++;
+          document.getElementById('scoreboard').innerHTML = `Score: ${score}`;
           apple.x = getRandomInt(0, 25) * grid;
           apple.y = getRandomInt(0, 25) * grid;
         }
@@ -142,6 +147,7 @@
           }
         }
       });
+      requestAnimationFrame(loop);
     }
 
     function gameOver() {

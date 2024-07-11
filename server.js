@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 const leaderboardRouter = require('./leaderboard');
 
+
 // Load environment variables from .env file
 dotenv.config();
 
@@ -138,6 +139,23 @@ app.post('/api/update-query/:id', (req, res) => {
         res.status(500).send('Internal server error');
     }
 });
+
+app.post('/api/generate-subject', async (req, res) => {
+    const { detail } = req.body;
+  
+    // Use Hugging Face Inference API
+    const response = await hf.textGeneration({
+      model: 'gpt2',
+      inputs: `Generate a concise subject line for the following issue detail:\n\n${detail}\n\nSubject:`,
+      parameters: {
+        max_new_tokens: 10,
+        return_full_text: false
+      }
+    });
+  
+    const subject = response.generated_text.trim();
+    res.json({ subject });
+  });
 
 // Use the leaderboard routes
 app.use('/api', leaderboardRouter);
