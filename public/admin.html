@@ -26,6 +26,17 @@
 
 <div class="container mt-4" id="admin-app">
     <h2>Admin Dashboard</h2>
+    <div class="form-group">
+        <label for="searchId">Search by ID:</label>
+        <input type="text" id="searchId" v-model="searchId" class="form-control" placeholder="Enter ID to search">
+    </div>
+    <div class="form-group">
+        <label for="searchUsername">Search by Username:</label>
+        <input type="text" id="searchUsername" v-model="searchUsername" class="form-control" placeholder="Enter Username to search">
+    </div>
+    <button @click="toggleSortOrder" class="btn btn-primary mb-3">
+        Toggle Sort Order ({{ sortOrder === 'asc' ? 'Oldest First' : 'Newest First' }})
+    </button>
     <div class="table-responsive">
         <table class="table table-bordered">
             <thead>
@@ -42,7 +53,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="query in queries" :key="query.id">
+                <tr v-for="query in sortedQueries" :key="query.id">
                     <td>{{ query.id }}</td>
                     <td>{{ query.user }}</td>
                     <td>{{ formatTimestamp(query.timestamp) }}</td>

@@ -35,7 +35,6 @@
     </nav>
     <div class="container mt-4" id="app">
         <h2>IT Support Request Form</h2>
-        <p>If you have any IT problems, please fill out and submit this form. Sean and Jack will use it to keep track of and fix issues. We will reach out via email or telephone after your submission via this platform.</p>
         <form id="support-form" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="subject">Subject of the Problem (Required)</label>
@@ -50,15 +49,18 @@
                 <input type="file" class="form-control-file" id="screenshots" name="screenshots" multiple accept=".docx,.xlsx,.pptx,.pdf,image/*,video/*,audio/*">
                 <small class="form-text text-muted">File number limit: 10, Single file size limit: 1GB, Allowed file types: Word, Excel, PPT, PDF, Image, Video, Audio</small>
             </div>
+            <div class="form-group">
+                <label>Uploaded Files:</label>
+                <ul id="uploaded-files-list"></ul>
+            </div>
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
         <div id="response-message" class="mt-4"></div>
     </div>
 
-
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js"></script> 
 </body>
 </html>

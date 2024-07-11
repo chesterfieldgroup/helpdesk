@@ -5,12 +5,32 @@ document.addEventListener('DOMContentLoaded', () => {
     new Vue({
         el: '#admin-app',
         data: {
-            queries: []
+            queries: [],
+            sortOrder: 'desc', // Default sort order
+            searchId: '',
+            searchUsername: ''
         },
         created() {
             this.fetchQueries();
         },
         computed: {
+            sortedQueries() {
+                let filteredQueries = this.queries.filter(query => {
+                    return (
+                        (this.searchId === '' || query.id.includes(this.searchId)) &&
+                        (this.searchUsername === '' || query.user.includes(this.searchUsername))
+                    );
+                });
+                return filteredQueries.slice().sort((a, b) => {
+                    const dateA = new Date(a.timestamp);
+                    const dateB = new Date(b.timestamp);
+                    if (this.sortOrder === 'asc') {
+                        return dateA - dateB;
+                    } else {
+                        return dateB - dateA;
+                    }
+                });
+            },
             hasScreenshots() {
                 return this.queries.some(query => query.screenshots && query.screenshots.length > 0);
             }
@@ -77,6 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (error) {
                     console.error('Failed to save query:', error);
                 }
+            },
+            toggleSortOrder() {
+                this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
             }
         }
     });

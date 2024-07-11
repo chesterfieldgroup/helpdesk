@@ -112,6 +112,8 @@ app.get('/api/queries', (req, res) => {
     let data = [];
     try {
         data = require(filePath);
+        // Sort queries by timestamp from most recent to least recent
+        data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     } catch (err) {
         console.error('Error loading data file:', err);
     }
