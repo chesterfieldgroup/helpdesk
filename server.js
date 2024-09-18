@@ -1,22 +1,36 @@
+// server.js
+const dotenv = require('dotenv');
+dotenv.config({ path: './.env' });
+
 const express = require('express');
 const session = require('express-session');
-const fs = require('fs');
+const MemoryStore = require('memorystore')(session);
+const bodyParser = require('body-parser');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 const multer = require('multer');
-const rateLimit = require('express-rate-limit');
-const dotenv = require('dotenv');
-const bodyParser = require('body-parser');
-const nodemailer = require('nodemailer');
-const leaderboardRouter = require('./leaderboard');
-const generateUniqueId = require('./idGenerator'); // Import the ID generator
-
-// Load environment variables from .env file
-dotenv.config();
-
+const fs = require('fs');
+const generateUniqueId = require('./public/js/idGenerator');
+const auth = require('./public/js/auth');
+//const { connectToDatabase, executeQuery } = require('./sql');
 const app = express();
 const port = 3000;
+const hostname = 'localhost';
+
+// Get the list of admin users from the .env file
+const adminUsers = process.env.ADMIN_EMAILS.split(',');
+
+// Connect to the database
+//connectToDatabase().catch(err => console.error('Database connection failed:', err));
+
 app.use(express.json());
 app.use(bodyParser.json());
+
+// Logging middleware for every request
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
 
 // Rate limiting middleware
 const limiter = rateLimit({
@@ -27,10 +41,36 @@ app.use(limiter);
 
 // Session middleware
 app.use(session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || 'default_secret_key',  // Provide a default secret
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    cookie: { secure: false}  // Set to true if using HTTPS
 }));
+
+// Middleware to check if the user is an admin
+const ensureAdmin = (req, res, next) => {
+    if (req.session.account && adminUsers.includes(req.session.account.username)) {
+        return next();
+    } else {
+        return res.status(403).send('Access Denied: You do not have permission to view this page.');
+    }
+};
+
+// In-memory store to track last submission time (for rate limiting form submissions)
+const lastSubmissionTime = {};
+
+// Middleware to check submission rate limit
+function checkSubmissionRateLimit(req, res, next) {
+    const userIP = req.ip; // Using IP address as identifier for simplicity
+    
+    const now = Date.now();
+    if (lastSubmissionTime[userIP] && (now - lastSubmissionTime[userIP] < 5 * 60 * 1000)) {
+        res.status(429).json({ success: false, message: 'You can only submit one query every 5 minutes.' });
+    } else {
+        lastSubmissionTime[userIP] = now;
+        next();
+    }
+}
 
 // Configure Multer for handling file uploads
 const storage = multer.diskStorage({
@@ -44,70 +84,83 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Serve static files from the public directory
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static files from the public directory (protected)
+app.use('/public', auth.ensureAuthenticated, express.static(path.join(__dirname, 'public')));
 
-// Serve files from the uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve files from the uploads directory (protected)
+app.use('/uploads', auth.ensureAuthenticated, express.static(path.join(__dirname, 'uploads')));
 
-// Middleware to check submission rate limit
-function checkSubmissionRateLimit(req, res, next) {
-    const userIP = req.ip; // Using IP address as identifier for simplicity
+// Public route to serve the login page
+app.get('/login', auth.authMiddleware);  // This should start the authentication process
 
-    const now = Date.now();
-    if (lastSubmissionTime[userIP] && (now - lastSubmissionTime[userIP] < 5 * 60 * 1000)) {
-        return res.status(429).json({ message: 'You can only submit one query every 5 minutes.' });
-    }
+app.get('/auth/redirect', auth.handleRedirect);
 
-    lastSubmissionTime[userIP] = now;
-    next();
-}
-
-// In-memory store to track last submission time
-const lastSubmissionTime = {};
-
-// Public route to serve the main page
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// Protect all other routes with authentication middleware
+app.get('/', auth.ensureAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/pages', 'index.html'));
 });
 
-// Route to serve the admin page (temporarily without auth)
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+// Route to serve the FAQ page
+app.get('/FAQ', auth.ensureAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/pages', 'FAQ.html'));
 });
 
-// API endpoint to handle form submission
-app.post('/api/submit-form', checkSubmissionRateLimit, upload.array('screenshots', 10), (req, res) => {
+// Check if the authenticated user is an admin
+app.get('/api/is-admin', auth.ensureAuthenticated, (req, res) => {
+    const isAdmin = adminUsers.includes(req.session.account.username);
+    res.json({ isAdmin });
+});
+
+// Route to serve the admin page (protected)
+app.get('/admin', auth.ensureAuthenticated, ensureAdmin, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/pages', 'admin.html'));
+});
+
+// API endpoint to handle form submission (protected)
+app.post('/api/submit-form', auth.ensureAuthenticated, checkSubmissionRateLimit, upload.array('screenshots', 10), (req, res) => {
     const { subject, detail } = req.body;
     const screenshotFiles = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
 
     const filePath = path.join(__dirname, 'queries.json');
     let data = [];
     try {
-        data = require(filePath);
+        if (!subject || !detail) {
+            throw new Error('Subject and detail are required fields.');
+        }
+        data = fs.existsSync(filePath) ? require(filePath) : [];
+
+        const newRequest = {
+            id: generateUniqueId(),
+            user: req.session.account ? req.session.account.username : "anonymous",
+            timestamp: new Date().toISOString(),
+            subject,
+            detail,
+            screenshots: screenshotFiles,
+            status: "Open",
+            resolvement: ""
+        };
+
+        data.push(newRequest);
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+        res.status(200).json({ success: true, message: 'Form submitted successfully!' });
     } catch (err) {
-        console.error('Error loading data file:', err);
+        console.error('Error handling form submission:', err);
+        res.status(400).json({ success: false, message: err.message || 'Failed to process form submission.' });
     }
-
-    const newRequest = {
-        id: generateUniqueId(), // Use the new ID generator
-        user: "anonymous",
-        timestamp: new Date().toISOString(),
-        subject,
-        detail,
-        screenshots: screenshotFiles,
-        status: "Open",
-        resolvement: ""
-    };
-
-    data.push(newRequest);
-
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-    res.json({ message: 'Form submitted successfully!' });
 });
 
-// API endpoint to get all queries
-app.get('/api/queries', (req, res) => {
+// SQL Example route to execute a query
+//app.get('/api/get-data', async (req, res) => {
+//    try {
+//        const data = await executeQuery('SELECT * FROM your_table'); // Replace 'your_table' with the actual table name
+//        res.json(data);
+//    } catch (err) {
+//        res.status(500).json({ error: 'Database query failed' });
+//    }
+//});
+
+// API endpoint to get all queries (protected)
+app.get('/api/queries', auth.ensureAuthenticated, (req, res) => {
     const filePath = path.join(__dirname, 'queries.json');
     let data = [];
     try {
@@ -120,20 +173,21 @@ app.get('/api/queries', (req, res) => {
     res.json(data);
 });
 
-app.post('/api/update-query/:id', (req, res) => {
+// API endpoint to update a query (protected)
+app.post('/api/update-query/:id', auth.ensureAuthenticated, (req, res) => {
     const { id } = req.params;
-    const { status, resolvement, engineer } = req.body;  // Add engineer here to be updated
-  
+    const { status, resolvement, engineer } = req.body;
+
     const filePath = path.join(__dirname, 'queries.json');
     let data = [];
-  
+
     try {
         data = require(filePath);
         const queryIndex = data.findIndex(q => q.id === id);
-        if(queryIndex !== -1) {
+        if (queryIndex !== -1) {
             data[queryIndex].status = status;
-            data[queryIndex].resolvement = resolvement;  // Ensure this is updated
-            data[queryIndex].engineer = engineer;  // Update engineer in the data
+            data[queryIndex].resolvement = resolvement;
+            data[queryIndex].engineer = engineer;
             fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
             res.json({ message: 'Query updated successfully!' });
         } else {
@@ -145,10 +199,7 @@ app.post('/api/update-query/:id', (req, res) => {
     }
 });
 
-// Use the leaderboard routes
-app.use('/api', leaderboardRouter);
-
 // Start the server
-app.listen(port, () => {
-    console.log(`Server listening at http://localhost:${port}`);
+app.listen(port, hostname, () => {
+    console.log(`Server running at http://${hostname}:${port}/`);
 });

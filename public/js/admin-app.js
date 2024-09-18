@@ -8,7 +8,14 @@ document.addEventListener('DOMContentLoaded', () => {
             queries: [],
             sortOrder: 'desc', // Default sort order
             searchId: '',
-            searchUsername: ''
+            searchUsername: '',
+            searchSubject: '',
+            filterEngineer: '',
+            filterStatus: '',
+            startDate: '',
+            endDate: '',
+            hasScreenshots: false,
+            showFilters: false,  // Control the visibility of the filter panel
         },
         created() {
             this.fetchQueries();
@@ -16,11 +23,21 @@ document.addEventListener('DOMContentLoaded', () => {
         computed: {
             sortedQueries() {
                 let filteredQueries = this.queries.filter(query => {
-                    return (
-                        (this.searchId === '' || query.id.includes(this.searchId)) &&
-                        (this.searchUsername === '' || query.user.includes(this.searchUsername))
-                    );
+                    const queryDate = new Date(query.timestamp);
+                    const startDate = this.startDate ? new Date(this.startDate) : null;
+                    const endDate = this.endDate ? new Date(this.endDate) : null;
+
+                    const matchesDateRange = (!startDate || queryDate >= startDate) && (!endDate || queryDate <= endDate);
+                    const matchesEngineer = this.filterEngineer === '' || query.engineer === this.filterEngineer;
+                    const matchesStatus = this.filterStatus === '' || query.status === this.filterStatus;
+                    const matchesScreenshots = !this.hasScreenshots || query.screenshots.length > 0;
+                    const matchesId = this.searchId === '' || query.id.includes(this.searchId);
+                    const matchesUsername = this.searchUsername === '' || query.user.includes(this.searchUsername);
+                    const matchesSubject = this.searchSubject === '' || query.subject.toLowerCase().includes(this.searchSubject.toLowerCase());
+
+                    return matchesId && matchesUsername && matchesSubject && matchesEngineer && matchesStatus && matchesDateRange && matchesScreenshots;
                 });
+
                 return filteredQueries.slice().sort((a, b) => {
                     const dateA = new Date(a.timestamp);
                     const dateB = new Date(b.timestamp);
@@ -30,19 +47,28 @@ document.addEventListener('DOMContentLoaded', () => {
                         return dateB - dateA;
                     }
                 });
-            },
-            hasScreenshots() {
-                return this.queries.some(query => query.screenshots && query.screenshots.length > 0);
             }
         },
+        
         methods: {
+            toggleFilterPanel() {
+                this.showFilters = !this.showFilters;
+            },
             async fetchQueries() {
                 try {
                     const response = await fetch('/api/queries');
                     const queries = await response.json();
-                    // Initialize showImage to false for all queries
-                    queries.forEach(query => query.showImage = false);
+                    queries.forEach(query => query.showImage = false); 
                     this.queries = queries;
+
+                    // Adjust the textarea heights after queries have been fetched
+                    this.$nextTick(() => {
+                        const textareas = document.querySelectorAll('.resolvement-input');
+                        textareas.forEach(textarea => {
+                            textarea.style.height = 'auto';
+                            textarea.style.height = textarea.scrollHeight + 'px';
+                        });
+                    });
                 } catch (error) {
                     console.error('Error fetching queries:', error);
                 }
@@ -59,12 +85,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 query.status = statusOptions[nextStatusIndex];
                 this.saveQuery(query);
             },
-            statusColor(status) {
-                switch(status) {
-                    case 'Open': return 'red';
-                    case 'In Progress': return 'orange';
-                    case 'Completed': return 'green';
-                    default: return 'black';
+            statusClass(query) {
+                switch(query.status) {
+                    case 'Open': return 'status-open';
+                    case 'In Progress': return 'status-inprogress';
+                    case 'Completed': return 'status-completed';
+                    default: return '';
                 }
             },
             adjustTextareaHeight(event) {
@@ -73,7 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 element.style.height = element.scrollHeight + 'px'; // Set new height based on content
             },
             toggleImageVisibility(query) {
-                // This toggles the visibility state of the image in the query object
                 Vue.set(query, 'showImage', !query.showImage);
             },
             updateEngineer(query) {

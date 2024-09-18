@@ -1,97 +1,156 @@
 /* General Styles */
 body {
     font-family: 'Arial', sans-serif;
-    background-color: #f4f4f4; /* Light grey background */
-    color: #333; /* Dark text for readability */
+    background-color: #f4f4f4;
+    /* Light grey background */
+    color: #333;
+    /* Dark text for readability */
 }
 
 /* Navigation Bar Customization */
 nav.navbar {
-    background-color: #003366; /* Dark blue, characteristic of H.W. Kaufman's palette */
+    background-color: #003366;
+    /* Dark blue, characteristic of H.W. Kaufman's palette */
 }
 
 nav.navbar .nav-link {
-    color: #ffffff; /* White text for contrast */
+    color: #ffffff;
+    /* White text for contrast */
 }
 
 nav.navbar .nav-link:hover {
-    color: #FFD700; /* Gold color for hover state */
+    color: #FFD700;
+    /* Gold color for hover state */
 }
 
 /* Footer Customization */
 footer.bg-dark {
-    background-color: #002855; /* A slightly darker shade of blue for the footer */
+    background-color: #002855;
+    /* A slightly darker shade of blue for the footer */
     color: #ffffff;
 }
 
 /* Custom Logo Space */
 .logo-container {
     display: flex;
-    justify-content: space-around; /* Evenly space logos */
-    align-items: center; /* Align logos vertically */
+    justify-content: space-around;
+    /* Evenly space logos */
+    align-items: center;
+    /* Align logos vertically */
     padding: 1rem;
-    background-color: #ffffff; /* White background for logos */
+    background-color: #ffffff;
+    /* White background for logos */
     margin-bottom: 1rem;
 }
 
 .logo {
-    max-width: 100px; /* Restrict logo size */
+    max-width: 100px;
+    /* Restrict logo size */
     height: auto;
-    margin: 0 15px; /* Space around each logo */
-}
-
-.btn-info {
-    color: #000000;
-    background-color: #ffffff;
-    border-color: #000000;
-    padding: 0.2rem;
-}
-
-.img-thumbnail {
-    margin-top: 1rem;
+    margin: 0 15px;
+    /* Space around each logo */
 }
 
 /* Section Customization */
 section {
-    background-color: #ffffff; /* White background for sections */
-    border: 1px solid #ddd; /* Subtle borders for sections */
+    background-color: #ffffff;
+    /* White background for sections */
+    border: 1px solid #ddd;
+    /* Subtle borders for sections */
     padding: 15px;
-    border-radius: 5px; /* Rounded borders */
+    border-radius: 5px;
+    /* Rounded borders */
     margin-bottom: 20px;
 }
 
-.resolvement-input {
-    width: 100%; /* Keep the width constant */
-    height: auto; /* Adjust height automatically */
-    min-height: 20px; /* Minimum height */
-    overflow-y: hidden; /* Prevent vertical scrollbar */
-    resize: none; /* Disable manual resizing */
-    border: none; /* Remove border for aesthetics */
-    outline: none; /* Remove focus outline */
-    background: transparent; /* Transparent background */
-    padding: 5px; /* Padding for text inside textarea */
-    box-shadow: none; /* Remove box shadow if any */
+.alert {
+    top: 20px !important;
+    /* Force override with !important if necessary */
 }
 
+/* Table Enhancements for Inner Horizontal Borders */
+.table-bordered {
+    border: none;
+    /* Remove outer border */
+}
 
+.table-bordered td,
+.table-bordered th {
+    border-top: 2px solid #000;
+    /* Only add horizontal top border */
+    border-bottom: 2px solid #000;
+    /* Only add horizontal bottom border */
+    border-left: none;
+    /* No vertical borders */
+    border-right: none;
+    /* No vertical borders */
+}
+
+th {
+    font-weight: bold;
+    background-color: #f8f9fa;
+    /* Light background for better contrast */
+}
+
+/* Color coding for status */
+.status-open {
+    background-color: #ffcccc;
+    /* Light red for open status */
+    color: red;
+}
+
+.status-inprogress {
+    background-color: #fff3cd;
+    /* Light yellow for in-progress status */
+    color: orange;
+}
+
+.status-completed {
+    background-color: #d4edda;
+    /* Light green for completed status */
+    color: green;
+}
+
+/* Make sure the textarea is flush and responsive */
+.resolvement-input {
+    width: 100%;
+    /* Make it fill the available space */
+    box-sizing: border-box;
+    /* Ensure padding and borders don't affect width */
+    margin-top: 5px;
+}
+
+/* Responsive design for smaller screens */
 @media (max-width: 768px) {
+
     /* Stack table headers for smaller screens */
     .table thead {
-        display: none; /* Hide table headers */
+        display: none;
+        /* Hide table headers */
     }
 
     /* Display table data like a card layout */
     .table tbody tr {
         display: block;
-        margin-bottom: .625rem;
-        border-radius: .3rem;
+        border: 2px solid #000; /* Add an outer border */
+        border-radius: 8px; /* Optional: rounded corners for tickets */
+        padding: 10px; /* Add padding around the content */
+        margin-bottom: 10px; /* Space between tickets */
+        
     }
 
     /* Make table cells display like block */
     .table td {
         display: block;
         text-align: right;
+        border: none; /* Remove cell borders */
     }
+
+    /* Remove top and bottom borders within each ticket */
+    .table-bordered td, .table-bordered th {
+        border: none; /* Remove inner borders for mobile */
+    }
+
 
     /* Style the ::before pseudo-element to show the data label */
     .table td::before {
@@ -101,41 +160,35 @@ section {
         text-transform: uppercase;
     }
 
-    /* Style the detail list to be more compact */
-    .table td ul {
-        padding-left: 20px;
-    }
-
-    .no-focus:focus {
-        outline: none;
-        box-shadow: none;
-    }
-
-    .table td ul li {
-        display: inline; /* Display the list items inline */
-        margin-right: 10px;
-    }
-
     /* Adjust padding and text sizes for readability */
     body {
         padding: 0 5px;
-        font-size: 14px; /* Larger font size for readability */
+        font-size: 14px;
+        /* Larger font size for readability */
     }
-    
+
     /* Adjust padding for form inputs and textareas */
     .form-control {
         padding: .375rem .75rem;
     }
-    
+
+    .form-check {
+        padding-left: 2.25em;
+    }
+
     /* Larger buttons for easier interaction */
     .btn {
         padding: .5rem 1rem;
     }
-    
+
     /* Custom styles for navbar toggler */
     .navbar-toggler {
         padding: .25rem .75rem;
         font-size: 1.25rem;
     }
-}
 
+    .resolvement-input {
+        width: 100%;
+        /* Ensure it spans the full width in mobile view */
+    }
+}
