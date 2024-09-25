@@ -7,20 +7,63 @@ body {
     /* Dark text for readability */
 }
 
+/* Hero Section for Employee Hub */
+.hub-hero {
+    background-color: #003366;
+    color: white;
+    padding: 2rem 1rem;
+    /* Reduced padding for a smaller hero */
+    text-align: center;
+}
+
+.hub-hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.hub-hero p {
+    font-size: 1rem;
+    /* Reduced font size */
+    margin-bottom: 1rem;
+}
+
+.hub-hero .btn {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    /* Reduced padding for a smaller button */
+    background-color: #FFD700;
+    color: #003366;
+    border: none;
+    font-weight: bold;
+}
+
+.hub-hero .btn:hover {
+    background-color: #ffc700;
+    color: #002855;
+}
+
 /* Navigation Bar Customization */
 nav.navbar {
     background-color: #003366;
     /* Dark blue, characteristic of H.W. Kaufman's palette */
+    padding: 1rem;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+nav.navbar .navbar-toggler {
+    border-color: #FFD700;
 }
 
 nav.navbar .nav-link {
     color: #ffffff;
-    /* White text for contrast */
+    font-size: 1.1rem;
+    margin-right: 15px;
 }
 
 nav.navbar .nav-link:hover {
     color: #FFD700;
     /* Gold color for hover state */
+    text-decoration: underline;
 }
 
 /* Footer Customization */
@@ -33,22 +76,20 @@ footer.bg-dark {
 /* Custom Logo Space */
 .logo-container {
     display: flex;
-    justify-content: space-around;
-    /* Evenly space logos */
+    justify-content: center;
+    /* Centering logos */
     align-items: center;
-    /* Align logos vertically */
-    padding: 1rem;
+    padding: 0.5rem;
     background-color: #ffffff;
-    /* White background for logos */
     margin-bottom: 1rem;
 }
 
 .logo {
-    max-width: 100px;
-    /* Restrict logo size */
+    max-width: 80px;
+    /* Adjust logo size */
     height: auto;
-    margin: 0 15px;
-    /* Space around each logo */
+    margin: 0 10px;
+    /* Adjust logo spacing */
 }
 
 /* Section Customization */
@@ -68,6 +109,11 @@ section {
     /* Force override with !important if necessary */
 }
 
+.table th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
 /* Table Enhancements for Inner Horizontal Borders */
 .table-bordered {
     border: none;
@@ -84,6 +130,10 @@ section {
     /* No vertical borders */
     border-right: none;
     /* No vertical borders */
+}
+
+table td {
+    padding: 0.2rem !important;
 }
 
 th {
@@ -120,8 +170,119 @@ th {
     margin-top: 5px;
 }
 
+input[type="file"] {
+    color: transparent;
+    /* Hides the "No file chosen" text */
+}
+
+.btn.btn-primary {
+    font-size: 1.5em !important;
+    width: 100%;
+}
+
+.img-thumbnail {
+    width: 100% !important;
+    /* Ensure the image takes full width */
+    padding: 10px !important;
+    /* Force padding to apply */
+    box-sizing: border-box;
+    /* Ensure padding is included in width */
+}
+
+img {
+    max-width: 100%;
+    /* Keep the image responsive */
+    height: auto;
+    display: block;
+    /* Removes any inline spacing */
+}
+
+.checkbox-container label {
+    margin-right: 15px;
+}
+
+ul {
+    list-style-type: none;
+    /* Removes bullets from the list */
+    padding-left: 0;
+    /* Removes default padding */
+    margin-top: 1rem !important;
+}
+
+li {
+    margin-bottom: 10px;
+    /* Adds some spacing between list items */
+}
+
+td {
+    text-align: center;
+}
+
+.table {
+    width: 100%;
+    table-layout: auto;
+    /* Allows the table to adjust based on content */
+}
+
+/* Ensure the navbar content doesn't wrap on any screen size */
+.navbar>.container,
+.navbar>.container-fluid {
+    flex-wrap: nowrap !important;
+    /* Prevent wrapping at all screen sizes */
+    justify-content: flex-end !important;
+    /* Ensure links are aligned to the right */
+}
+
+/* Ensure navbar links align horizontally */
+.navbar-nav {
+    display: flex !important;
+    /* Force flexbox layout */
+    flex-direction: row !important;
+    /* Align items in a row */
+    justify-content: flex-end !important;
+    /* Align items to the right */
+    align-items: center !important;
+    /* Center vertically */
+}
+
+/* Navbar links styling */
+.nav-item {
+    margin-left: 10px;
+    /* Adds spacing between the buttons */
+    margin-right: 10px;
+}
+
+.nav-link {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white !important;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+/* Hover effect for better UX */
+.nav-link:hover {
+    background-color: #0056b3;
+}
+
 /* Responsive design for smaller screens */
 @media (max-width: 768px) {
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+    }
+
+    .btn {
+        width: 100%;
+        padding: .75rem 1rem;
+    }
+
+    .alert {
+        font-size: 1.1rem;
+    }
 
     /* Stack table headers for smaller screens */
     .table thead {
@@ -132,25 +293,39 @@ th {
     /* Display table data like a card layout */
     .table tbody tr {
         display: block;
-        border: 2px solid #000; /* Add an outer border */
-        border-radius: 8px; /* Optional: rounded corners for tickets */
-        padding: 10px; /* Add padding around the content */
-        margin-bottom: 10px; /* Space between tickets */
-        
+        border: 2px solid #000;
+        /* Add an outer border */
+        border-radius: 8px;
+        /* Optional: rounded corners for tickets */
+        padding: 10px;
+        /* Add padding around the content */
+        margin-bottom: 10px;
+        /* Space between tickets */
+
     }
 
     /* Make table cells display like block */
     .table td {
         display: block;
-        text-align: right;
-        border: none; /* Remove cell borders */
+        text-align: left;
+        border: none;
+        /* Remove cell borders */
     }
 
     /* Remove top and bottom borders within each ticket */
-    .table-bordered td, .table-bordered th {
-        border: none; /* Remove inner borders for mobile */
+    .table-bordered td,
+    .table-bordered th {
+        border: none;
+        /* Remove inner borders for mobile */
     }
 
+    .engineer-assign-btn,
+    .status-completed,
+    .status-open,
+    .status-inprogress {
+        margin: 5px !important;
+        text-align: right !important;
+    }
 
     /* Style the ::before pseudo-element to show the data label */
     .table td::before {
@@ -187,8 +362,17 @@ th {
         font-size: 1.25rem;
     }
 
+    .nav-link {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+
     .resolvement-input {
         width: 100%;
         /* Ensure it spans the full width in mobile view */
+    }
+
+    .logo-container {
+        display: flex;
     }
 }

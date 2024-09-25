@@ -7,6 +7,17 @@ document.addEventListener('DOMContentLoaded', () => {
         data: {
             queries: [],
             sortOrder: 'desc', // Default sort order
+            visibleColumns: {
+                id: true,
+                user: true,
+                timestamp: true,
+                subject: true,
+                detail: true,
+                screenshots: true,
+                engineer: true,
+                status: true,
+                resolvement: true
+            },
             searchId: '',
             searchUsername: '',
             searchSubject: '',
@@ -18,7 +29,26 @@ document.addEventListener('DOMContentLoaded', () => {
             showFilters: false,  // Control the visibility of the filter panel
         },
         created() {
+        // Load column visibility settings from localStorage
+            try {
+                const savedVisibleColumns = localStorage.getItem('visibleColumns');
+                if (savedVisibleColumns) {
+                    this.visibleColumns = JSON.parse(savedVisibleColumns);
+                }
+            } catch (error) {
+                console.error("Error loading column visibility settings from localStorage:", error);
+            }
+
             this.fetchQueries();
+        },
+        watch: {
+        // Watch for changes in visibleColumns and save to localStorage
+        visibleColumns: {
+            handler(newValue) {
+                localStorage.setItem('visibleColumns', JSON.stringify(newValue));
+            },
+            deep: true // This ensures nested properties are observed
+        }
         },
         computed: {
             sortedQueries() {
@@ -102,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 Vue.set(query, 'showImage', !query.showImage);
             },
             updateEngineer(query) {
-                const engineers = ["Jack", "Sean", "Nik", "Sean + Jack", "Nik + Sean", "Full Squad"];  // Array of possible engineers
+                const engineers = ["Jack", "Sean", "Nik", "Sean + Jack", "Nik + Sean", "Nik + Jack", "Full Squad"];  // Array of possible engineers
                 let currentEngineerIndex = engineers.indexOf(query.engineer);  // Get current index
                 let nextEngineerIndex = (currentEngineerIndex + 1) % engineers.length;  // Calculate next index
                 query.engineer = engineers[nextEngineerIndex];  // Update to the next engineer

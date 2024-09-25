@@ -7,51 +7,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle form submission
     form.addEventListener('submit', (event) => {
-        event.preventDefault();
+    event.preventDefault();
+    
+    const submitButton = document.querySelector('button[type="submit"]');
+    submitButton.textContent = "Submitting...";
+    submitButton.disabled = true;
 
-        // Create a new FormData object
-        const formData = new FormData(form);
-
-        // Append accumulated files to the FormData object
-        accumulatedFiles.forEach((file) => {
-            formData.append('screenshots', file);
-        });
-
-        // Send the form data via AJAX
-        fetch('/api/submit-form', {
-            method: 'POST',
-            body: formData,
-        })
-        .then(response => response.json())
-        .then(data => {
-            const responseDiv = document.getElementById('response-message');
-            responseDiv.style.display = 'block';
-            responseDiv.textContent = data.message;
-            responseDiv.className = data.success ? 'alert alert-success' : 'alert alert-danger';
-        })
-        .catch(error => {
-            const responseDiv = document.getElementById('response-message');
-            responseDiv.style.display = 'block';
-            responseDiv.className = 'alert alert-danger';
-            responseDiv.textContent = 'An unexpected error occurred while submitting the form.';
-        });
+    const formData = new FormData(form);
+    accumulatedFiles.forEach(file => {
+        formData.append('screenshots', file);
     });
+
+    fetch('/api/submit-form', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        const responseDiv = document.getElementById('response-message');
+        responseDiv.style.display = 'block';
+        responseDiv.textContent = data.message;
+        responseDiv.className = data.success ? 'alert alert-success' : 'alert alert-danger';
+        submitButton.textContent = "Submit";
+        submitButton.disabled = false;
+
+        setTimeout(() => {
+            responseDiv.style.display = 'none';
+        }, 5000); // Keeps message for 5 seconds
+    })
+    .catch(error => {
+        const responseDiv = document.getElementById('response-message');
+        responseDiv.style.display = 'block';
+        responseDiv.className = 'alert alert-danger';
+        responseDiv.textContent = 'An unexpected error occurred while submitting the form.';
+        submitButton.textContent = "Submit";
+        submitButton.disabled = false;
+    });
+    });
+
 
     // Handle file input changes, preventing duplicates
     fileInput.addEventListener('change', (event) => {
-        for (let i = 0; i < event.target.files.length; i++) {
-            const newFile = event.target.files[i];
-            const fileExists = accumulatedFiles.some(file => file.name === newFile.name && file.size === newFile.size);
+    const maxFileSize = 5 * 1024 * 1024; // 5MB
+    const allowedFileTypes = ['.docx', '.xlsx', '.pptx', '.pdf', 'image/', 'video/', 'audio/'];
 
-            // Only add the file if it does not already exist in accumulatedFiles
-            if (!fileExists) {
-                accumulatedFiles.push(newFile);
-                displayUploadedFile(newFile);
-            }
+    for (let i = 0; i < event.target.files.length; i++) {
+        const newFile = event.target.files[i];
+        const fileTypeValid = allowedFileTypes.some(type => newFile.type.startsWith(type));
+        const fileSizeValid = newFile.size <= maxFileSize;
+        const fileExists = accumulatedFiles.some(file => file.name === newFile.name && file.size === newFile.size);
+
+        if (!fileTypeValid) {
+            alert(`${newFile.name} is not a valid file type.`);
+            continue;
         }
-        // Clear the file input after files are added to avoid re-triggering the change event on re-upload
-        fileInput.value = "";
-    });
+
+        if (!fileSizeValid) {
+            alert(`${newFile.name} exceeds the 5MB file size limit.`);
+            continue;
+        }
+
+        if (!fileExists) {
+            accumulatedFiles.push(newFile);
+            displayUploadedFile(newFile);
+        }
+    }
+    fileInput.value = "";
+});
+
 
     // Handle pasting images into the detail field
     detailField.addEventListener('paste', (event) => {

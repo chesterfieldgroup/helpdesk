@@ -1,4 +1,3 @@
-// server.js
 const dotenv = require('dotenv');
 dotenv.config({ path: './.env' });
 
@@ -8,20 +7,36 @@ const MemoryStore = require('memorystore')(session);
 const bodyParser = require('body-parser');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const mime = require('mime');
 const multer = require('multer');
 const fs = require('fs');
 const generateUniqueId = require('./public/js/idGenerator');
 const auth = require('./public/js/auth');
-//const { connectToDatabase, executeQuery } = require('./sql');
+const { Client } = require('@microsoft/microsoft-graph-client');
+const { ClientSecretCredential } = require('@azure/identity');
+
 const app = express();
 const port = 3000;
 const hostname = 'localhost';
 
-// Get the list of admin users from the .env file
-const adminUsers = process.env.ADMIN_EMAILS.split(',');
+app.use(express.static(path.join(__dirname, 'dist')));
 
-// Connect to the database
-//connectToDatabase().catch(err => console.error('Database connection failed:', err));
+// Set up Azure AD credentials using the Client Secret
+const credential = new ClientSecretCredential(
+    process.env.AZURE_TENANT_ID,      // Your Tenant ID
+    process.env.AZURE_CLIENT_ID,      // Your Client ID
+    process.env.AZURE_CLIENT_SECRET   // Your Client Secret
+);
+
+// Create Microsoft Graph Client
+const graphClient = Client.initWithMiddleware({
+    authProvider: {
+        getAccessToken: async () => {
+            const tokenResponse = await credential.getToken("https://graph.microsoft.com/.default");
+            return tokenResponse.token;
+        }
+    }
+});
 
 app.use(express.json());
 app.use(bodyParser.json());
@@ -34,8 +49,8 @@ app.use((req, res, next) => {
 
 // Rate limiting middleware
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limit each IP to 100 requests per windowMs
+    windowMs: 5 * 60 * 1000,  // 5 minutes
+    max: 300  // allow 300 requests per IP in 5 minutes
 });
 app.use(limiter);
 
@@ -44,11 +59,12 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'default_secret_key',  // Provide a default secret
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false}  // Set to true if using HTTPS
+    cookie: { secure: false }  // Set to true if using HTTPS
 }));
 
 // Middleware to check if the user is an admin
 const ensureAdmin = (req, res, next) => {
+    const adminUsers = process.env.ADMIN_EMAILS.split(',');
     if (req.session.account && adminUsers.includes(req.session.account.username)) {
         return next();
     } else {
@@ -61,7 +77,7 @@ const lastSubmissionTime = {};
 
 // Middleware to check submission rate limit
 function checkSubmissionRateLimit(req, res, next) {
-    const userIP = req.ip; // Using IP address as identifier for simplicity
+    const userIP = req.ip;  // Using IP address as identifier for simplicity
     
     const now = Date.now();
     if (lastSubmissionTime[userIP] && (now - lastSubmissionTime[userIP] < 5 * 60 * 1000)) {
@@ -75,92 +91,47 @@ function checkSubmissionRateLimit(req, res, next) {
 // Configure Multer for handling file uploads
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/')  // files will be saved in the 'uploads' directory
+        cb(null, 'uploads/');  // files will be saved in the 'uploads' directory
     },
     filename: function (req, file, cb) {
-        // files will have the original file extension
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
     }
 });
 const upload = multer({ storage: storage });
 
 // Serve static files from the public directory (protected)
 app.use('/public', auth.ensureAuthenticated, express.static(path.join(__dirname, 'public')));
-
-// Serve files from the uploads directory (protected)
 app.use('/uploads', auth.ensureAuthenticated, express.static(path.join(__dirname, 'uploads')));
 
 // Public route to serve the login page
-app.get('/login', auth.authMiddleware);  // This should start the authentication process
+app.get('/login', auth.authMiddleware);
 
+// Handle OAuth redirect after login
 app.get('/auth/redirect', auth.handleRedirect);
 
-// Protect all other routes with authentication middleware
+// Serve the home page (index.html) on the root route
 app.get('/', auth.ensureAuthenticated, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/pages', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public/pages', 'ticket.html'));  // Adjust the path as needed
+});
+
+// Serve the ticket logging page (ticket.html) on the /ticket route
+app.get('/ticket', auth.ensureAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/pages', 'ticket.html'));
 });
 
 // Route to serve the FAQ page
 app.get('/FAQ', auth.ensureAuthenticated, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/pages', 'FAQ.html'));
+    res.sendFile(path.join(__dirname, 'public/pages/FAQ.html'));
 });
 
 // Check if the authenticated user is an admin
 app.get('/api/is-admin', auth.ensureAuthenticated, (req, res) => {
-    const isAdmin = adminUsers.includes(req.session.account.username);
+    const isAdmin = process.env.ADMIN_EMAILS.split(',').includes(req.session.account.username);
     res.json({ isAdmin });
 });
 
-// Route to serve the admin page (protected)
-app.get('/admin', auth.ensureAuthenticated, ensureAdmin, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/pages', 'admin.html'));
-});
-
-// API endpoint to handle form submission (protected)
-app.post('/api/submit-form', auth.ensureAuthenticated, checkSubmissionRateLimit, upload.array('screenshots', 10), (req, res) => {
-    const { subject, detail } = req.body;
-    const screenshotFiles = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
-
-    const filePath = path.join(__dirname, 'queries.json');
-    let data = [];
-    try {
-        if (!subject || !detail) {
-            throw new Error('Subject and detail are required fields.');
-        }
-        data = fs.existsSync(filePath) ? require(filePath) : [];
-
-        const newRequest = {
-            id: generateUniqueId(),
-            user: req.session.account ? req.session.account.username : "anonymous",
-            timestamp: new Date().toISOString(),
-            subject,
-            detail,
-            screenshots: screenshotFiles,
-            status: "Open",
-            resolvement: ""
-        };
-
-        data.push(newRequest);
-        fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-        res.status(200).json({ success: true, message: 'Form submitted successfully!' });
-    } catch (err) {
-        console.error('Error handling form submission:', err);
-        res.status(400).json({ success: false, message: err.message || 'Failed to process form submission.' });
-    }
-});
-
-// SQL Example route to execute a query
-//app.get('/api/get-data', async (req, res) => {
-//    try {
-//        const data = await executeQuery('SELECT * FROM your_table'); // Replace 'your_table' with the actual table name
-//        res.json(data);
-//    } catch (err) {
-//        res.status(500).json({ error: 'Database query failed' });
-//    }
-//});
-
-// API endpoint to get all queries (protected)
-app.get('/api/queries', auth.ensureAuthenticated, (req, res) => {
+// API endpoint to get all queries
+app.get('/api/queries', (req, res) => {
     const filePath = path.join(__dirname, 'queries.json');
     let data = [];
     try {
@@ -172,6 +143,118 @@ app.get('/api/queries', auth.ensureAuthenticated, (req, res) => {
     }
     res.json(data);
 });
+
+// Route to serve the admin page (protected)
+app.get('/admin', auth.ensureAuthenticated, ensureAdmin, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/pages/admin.html'));
+});
+
+// API endpoint to handle form submission (protected)
+app.post('/api/submit-form', auth.ensureAuthenticated, checkSubmissionRateLimit, upload.array('screenshots', 10), async (req, res) => {
+    const { subject, detail } = req.body;
+    const screenshotFiles = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+    const userEmail = req.session.account.username;  // Get the user's email from the session
+
+    const filePath = path.join(__dirname, 'queries.json');
+    let data = [];
+    try {
+        if (!subject || !detail) {
+            throw new Error('Subject and detail are required fields.');
+        }
+        data = fs.existsSync(filePath) ? require(filePath) : [];
+
+        const newRequest = {
+            id: generateUniqueId(),
+            user: userEmail,
+            timestamp: new Date().toISOString(),
+            subject,
+            detail,
+            screenshots: screenshotFiles,
+            status: "Open",
+            resolvement: ""
+        };
+
+        data.push(newRequest);
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+
+        // Prepare the email for the IT support team
+        const itSupportMessage = {
+            message: {
+                subject: `New IT Support Ticket from ${userEmail}`,
+                body: {
+                    contentType: "Text",
+                    content: `A new IT support ticket has been submitted by ${userEmail}.\n\nSubject: ${subject}\nDetails: ${detail}\n\nScreenshots: ${screenshotFiles.join(', ')}` 
+                },
+                toRecipients: [{
+                    emailAddress: {
+                        address: 'it-support@chesterfieldgroup.co.uk'
+                    }
+                }],
+                attachments: screenshotFiles.map(file => ({
+                    "@odata.type": "#microsoft.graph.fileAttachment",
+                    name: file,
+                    contentBytes: fs.readFileSync(path.join(__dirname, file)).toString('base64'),
+                    contentType: 'application/octet-stream'
+                }))
+            }
+        };
+
+        const userConfirmationMessage = {
+        message: {
+        subject: `Your IT Support Ticket has been logged: ${subject}`,
+        body: {
+            contentType: "HTML",  // Changed to HTML for more flexibility
+            content: `
+                <p>Dear ${userEmail},</p>
+                <p>Thank you for submitting a support request. Here are the details:</p>
+                <p><strong>Subject:</strong> ${subject}<br>
+                <strong>Details:</strong> ${detail}</p>
+                <p>Your request is now being handled. You will be contacted by a member of the IT Team shortly.</p>
+                <br>
+                <p>Kind regards,</p>
+                <p>Kaufman London IT Support</p>
+                <br>
+                <img src="cid:chesterfieldLogo" alt="H.W. Kaufman Logo" class="logo">
+            `
+        },
+        toRecipients: [{
+            emailAddress: {
+                address: userEmail
+            }
+        }],
+        attachments: screenshotFiles.map(file => ({
+            "@odata.type": "#microsoft.graph.fileAttachment",
+            name: file,
+            contentBytes: fs.readFileSync(path.join(__dirname, file)).toString('base64'),
+            contentType: 'application/octet-stream'
+        })).concat([{
+            "@odata.type": "#microsoft.graph.fileAttachment",
+            name: "kfg-logo-lg.jpg",
+            contentBytes: fs.readFileSync(path.join(__dirname, 'public/img/kfg-logo-lg.jpg')).toString('base64'),
+            contentType: 'image/jpeg',
+            contentId: "chesterfieldLogo"
+        }]),
+        internetMessageHeaders: [
+            { name: "x-Content-ID", value: "chesterfieldLogo" }
+        ]
+        }
+        };
+
+
+        const emailMessages = [itSupportMessage, userConfirmationMessage];
+        await Promise.all(emailMessages.map(message => 
+        graphClient.api(`/users/it-support@chesterfieldgroup.co.uk/sendMail`).post(message)
+        ));
+
+        // Respond to the client after both emails are sent
+        res.status(200).json({ success: true, message: 'Your ticket has been successfully logged. Wait for a reply from the IT team.' });
+
+    } catch (err) {
+        console.error('Error handling form submission:', err);
+        res.status(400).json({ success: false, message: err.message || 'Failed to process form submission.' });
+    }
+});
+
 
 // API endpoint to update a query (protected)
 app.post('/api/update-query/:id', auth.ensureAuthenticated, (req, res) => {
