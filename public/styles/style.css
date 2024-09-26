@@ -161,6 +161,13 @@ th {
     color: green;
 }
 
+.status-withdrawn {
+    background-color: #f8d7da;
+    /* Light red background for withdrawn status */
+    color: #721c24;
+    /* Dark red text for withdrawn status */
+}
+
 /* Make sure the textarea is flush and responsive */
 .resolvement-input {
     width: 100%;

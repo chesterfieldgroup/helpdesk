@@ -109,19 +109,29 @@ document.addEventListener('DOMContentLoaded', () => {
             isImage(filePath) {
                 return /\.(jpg|jpeg|png|gif)$/i.test(filePath);
             },
+            statusClass(query) {
+                if (query.status === 'Open') {
+                    return 'your-custom-class-for-open'; // Replace with your class
+                } else if (query.status === 'In Progress') {
+                    return 'your-custom-class-for-in-progress'; // Replace with your class
+                } else if (query.status === 'Completed') {
+                    return 'your-custom-class-for-completed'; // Replace with your class
+                } else if (query.status === 'Withdrawn') {
+                    return 'your-custom-class-for-withdrawn'; // Replace with your class
+                } else {
+                    return ''; // Default class
+                }
+            },
             updateStatus(query) {
+                if (query.status === 'Withdrawn') {
+                    console.log('Cannot change status of a withdrawn ticket.');
+                return; // Prevent status change if the ticket is withdrawn
+                }
+
                 const statusOptions = ["Open", "In Progress", "Completed"];
                 let nextStatusIndex = (statusOptions.indexOf(query.status) + 1) % statusOptions.length;
                 query.status = statusOptions[nextStatusIndex];
                 this.saveQuery(query);
-            },
-            statusClass(query) {
-                switch(query.status) {
-                    case 'Open': return 'status-open';
-                    case 'In Progress': return 'status-inprogress';
-                    case 'Completed': return 'status-completed';
-                    default: return '';
-                }
             },
             adjustTextareaHeight(event) {
                 const element = event.target;

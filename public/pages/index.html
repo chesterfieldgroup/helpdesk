@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="32x32" href="public/img/favicon.ico">
+    <title>Kaufman Hub - Home</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="public/styles/style.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Kaufman Hub</a>
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/ticket">Submit a Ticket</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/FAQ">FAQ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/user-tickets">View Your IT Ticket's</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="jumbotron text-center">
+        <div class="container">
+            <h1 class="display-4">Welcome to Kaufman Hub</h1>
+            <p class="lead">Your one-stop destination for IT support, resources, and company-wide updates.</p>
+            <a href="/ticket" class="btn btn-primary btn-lg">Submit an IT Support Request</a>
+        </div>
+    </div>
+
+    <!-- Section 1: IT Support -->
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-6">
+                <h2>IT Support Requests</h2>
+                <p>If you're experiencing any issues with our systems, you can easily log a ticket with the IT team. Our
+                    team is here to assist you with any technical difficulties.</p>
+                <a href="/ticket" class="btn btn-secondary">Log a Ticket</a>
+            </div>
+            <div class="col-md-6">
+                <img src="public/img/it-support.jpg" alt="IT Support" class="img-fluid rounded">
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Company Resources -->
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-6">
+                <img src="public/img/resources.jpg" alt="Company Resources" class="img-fluid rounded">
+            </div>
+            <div class="col-md-6">
+                <h2>Company Resources</h2>
+                <p>Access all your company resources from a single hub. Whether you’re looking for policy documents,
+                    guidelines, or other resources, we’ve got it all here.</p>
+                <a href="resources.html" class="btn btn-secondary">View Resources</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: FAQs -->
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-6">
+                <h2>Frequently Asked Questions</h2>
+                <p>Looking for answers? Visit our FAQ section to find commonly asked questions and solutions related to
+                    IT support, company policies, and more.</p>
+                <a href="/FAQ" class="btn btn-secondary">Visit FAQ</a>
+            </div>
+            <div class="col-md-6">
+                <img src="public/img/faq.jpg" alt="FAQ" class="img-fluid rounded">
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-3">
+        <p>&copy; 2023 H.W. Kaufman Group. All rights reserved.</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+
+</html>

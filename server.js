@@ -111,7 +111,7 @@ app.get('/auth/redirect', auth.handleRedirect);
 
 // Serve the home page (index.html) on the root route
 app.get('/', auth.ensureAuthenticated, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/pages', 'ticket.html'));  // Adjust the path as needed
+    res.sendFile(path.join(__dirname, 'public/pages', 'index.html'));  // Adjust the path as needed
 });
 
 // Serve the ticket logging page (ticket.html) on the /ticket route
@@ -148,6 +148,62 @@ app.get('/api/queries', (req, res) => {
 app.get('/admin', auth.ensureAuthenticated, ensureAdmin, (req, res) => {
     res.sendFile(path.join(__dirname, 'public/pages/admin.html'));
 });
+
+// Serve the user ticket view page
+app.get('/user-tickets', auth.ensureAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/pages', 'user-tickets.html'));  // Adjust path if needed
+});
+
+// API route to fetch the user's tickets
+app.get('/api/user-tickets', auth.ensureAuthenticated, (req, res) => {
+    console.log('API Route /api/user-tickets hit');  // Add this at the very start!
+
+    res.set('Cache-Control', 'no-store');  // Disable caching
+
+    const userEmail = req.session.account.username;  // Get the user's email from the session
+    console.log('User email:', userEmail);  // Debugging log
+
+    const filePath = path.join(__dirname, 'queries.json');
+    let data = [];
+    try {
+        data = require(filePath);
+        const userTickets = data.filter(ticket => ticket.user === userEmail);
+        console.log('User tickets:', userTickets);  // Debugging log
+        res.json(userTickets);
+    } catch (err) {
+        console.error('Error loading user tickets:', err);
+        res.status(500).json({ success: false, message: 'Failed to load tickets.' });
+    }
+});
+
+
+
+
+// API route to withdraw a ticket
+app.post('/api/withdraw-ticket/:id', auth.ensureAuthenticated, (req, res) => {
+    const { id } = req.params;
+    const userEmail = req.session.account.username;  // Get the user's email from the session
+
+    const filePath = path.join(__dirname, 'queries.json');
+    let data = [];
+
+    try {
+        data = require(filePath);
+        const ticketIndex = data.findIndex(ticket => ticket.id === id && ticket.user === userEmail);
+
+        if (ticketIndex !== -1) {
+            data[ticketIndex].status = 'Withdrawn';  // Mark the ticket as withdrawn
+            fs.writeFileSync(filePath, JSON.stringify(data, null, 2));  // Save changes to file
+            res.json({ success: true, message: 'Ticket withdrawn successfully.' });
+        } else {
+            res.status(404).json({ success: false, message: 'Ticket not found or not authorized.' });
+        }
+    } catch (err) {
+        console.error('Error withdrawing ticket:', err);
+        res.status(500).json({ success: false, message: 'Failed to withdraw ticket.' });
+    }
+});
+
 
 // API endpoint to handle form submission (protected)
 app.post('/api/submit-form', auth.ensureAuthenticated, checkSubmissionRateLimit, upload.array('screenshots', 10), async (req, res) => {
@@ -281,6 +337,23 @@ app.post('/api/update-query/:id', auth.ensureAuthenticated, (req, res) => {
         res.status(500).send('Internal server error');
     }
 });
+
+app.delete('/api/withdraw-ticket/:id', (req, res) => {
+    const { id } = req.params;
+
+    // Load the queries.json file
+    const filePath = path.join(__dirname, 'queries.json');
+    let queries = require(filePath);
+
+    // Filter out the ticket that needs to be deleted
+    const newQueries = queries.filter(query => query.id !== id);
+
+    // Save the updated queries to the file
+    fs.writeFileSync(filePath, JSON.stringify(newQueries, null, 2));
+
+    res.json({ success: true, message: 'Ticket successfully withdrawn and deleted' });
+});
+
 
 // Start the server
 app.listen(port, hostname, () => {
