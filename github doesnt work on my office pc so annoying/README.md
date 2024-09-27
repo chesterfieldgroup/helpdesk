@@ -17,10 +17,10 @@ The IT Support Hub is a streamlined web portal designed to facilitate efficient 
 - **Azure Oauth:** Need to ensure that only users signed in with mircosoft accounts tied to @chesterfieldgroup can submit a form request, and so that only Sean and Jack can only access admin.
 - **Screenshots:** Add functionality so that users can use snip and cut to paste images into the form which can be viewed via the admin table.
 
-Ammend/Withdraw mistake tickets
-User view progress of ticket and history of their tickets, in this view be able to withdraw the tickets.
+Ammend/Withdraw mistake tickets DONE
+User view progress of ticket and history of their tickets, in this view be able to withdraw the tickets. DONE
 Force harder subject categorisation
 think about wider IT requests like asking for new phone or request
 If someone calls up with a ticket, create a ticket on admin with options to not send them a follow up email
 Set timers for tickets if they go stale
-Allow users to set urgency of ticket
+Allow users to set urgency of ticket DONE

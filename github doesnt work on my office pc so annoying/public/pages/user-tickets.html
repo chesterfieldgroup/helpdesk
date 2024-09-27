@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Ticket History - Kaufman Hub</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="public/styles/user-ticket.css">
+</head>
+
+<body>
+    
+    <!-- Navbar -->
+    <div class="navbar">
+        <!-- Home Button -->
+        <a href="/" class="btn btn-home">
+            <i class="fas fa-home"></i> Home
+        </a>
+    
+        <!-- Submit a Ticket Button -->
+        <a href="/ticket" class="btn btn-submit">
+            <i class="fas fa-ticket-alt"></i> Submit a Ticket
+        </a>
+    </div>
+
+    <!-- Ticket History Section -->
+    <div class="container my-5" id="app">
+        <h2>Your Ticket History</h2>
+        <p>Here you can view the progress of your support tickets and take actions like withdrawing a ticket.</p>
+
+        <div class="form-group">
+            <label for="sortOptions">Sort Tickets By:</label>
+            <select id="sortOptions" v-model="selectedSortOption" class="form-control" @change="sortTickets">
+                <option value="date">Date Submitted</option>
+                <option value="status">Status</option>
+                <option value="urgency">Urgency</option>
+                <option value="subject">Subject</option>
+            </select>
+        </div>
+
+        <!-- Ticket Table -->
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th style="width: 6%; text-align: left;">ID</th>
+                        <th style="width: 15%;">Subject</th>
+                        <th style="width: 5%;">Status</th>
+                        <th style="width: 6%;">Urgency</th>
+                        <th style="width: 10%; text-align: left;">Date Submitted</th> <!-- Reduced width for Date -->
+                        <th style="width: 7%; text-align: left;">Engineer</th>
+                        <th style="width: 20%;">Detail</th> <!-- Increased width for Detail -->
+                        <th style="width: 20%; text-align: left;">Resolvement</th>
+                        <th style="width: 8%; text-align: left;">Screenshots</th>
+                        <th style="width: 6%; align-items: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="ticket in sortedTickets()" :key="ticket.id">
+                        <td data-label="ID">{{ ticket.id }}</td>
+                        <td data-label="Subject">
+                            <textarea v-model="ticket.subject" class="form-control" @input="autoResize" @change="updateTicket(ticket)"
+                                rows="1"></textarea>
+                        </td>
+                        <td data-label="Status" :class="{
+                                'status-open': ticket.status === 'Open',
+                                'status-inprogress': ticket.status === 'In Progress',
+                                'status-completed': ticket.status === 'Completed',
+                                'status-withdrawn': ticket.status === 'Withdrawn'
+                            }">
+                            {{ ticket.status }}
+                        </td>
+                        <td data-label="Urgency">
+                            <select v-model="ticket.urgency" class="form-control" @change="updateTicket(ticket)">
+                                <option value="!">!</option>
+                                <option value="!!">!!</option>
+                                <option value="!!!">!!!</option>
+                            </select>
+                        </td>
+                        <td data-label="Date Submitted">{{ formatDate(ticket.timestamp) }}</td>
+                        <td data-label="Engineer">{{ ticket.engineer || 'Unassigned' }}</td>
+                        <td data-label="Detail">
+                            <textarea v-model="ticket.detail" class="form-control" @input="autoResize" @change="updateTicket(ticket)"
+                                rows="1"></textarea>
+                        </td>
+                        <td data-label="Resolvement">
+                            <textarea class="form-control" readonly>{{ ticket.resolvement || 'Pending' }}</textarea>
+                        </td>
+                        <td data-label="Screenshots">
+                            <button v-if="ticket.screenshots && ticket.screenshots.length > 0"
+                                @click="openImageModal(ticket.screenshots)" class="btn btn-info no-focus">View Images</button>
+                        </td>
+                        <td data-label="Actions">
+                            <button @click="withdrawTicket(ticket)" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Modal for Displaying Full-Screen Image -->
+        <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="imageModalLabel">Screenshots</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div v-for="screenshot in selectedScreenshots" :key="screenshot">
+                            <img :src="screenshot" class="img-fluid" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Withdraw Ticket Confirmation Modal -->
+        <div class="modal fade" id="withdrawModal" tabindex="-1" role="dialog" aria-labelledby="withdrawModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="withdrawModalLabel">Withdraw Ticket</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure you want to withdraw this ticket? This action cannot be undone.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" @click="confirmWithdraw">Withdraw Ticket</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="logo-container">
+            <img src="public/img/kfg-logo-lg.jpg" alt="H.W. Kaufman Logo" class="logo">
+            <img src="public/img/chester.jpg" alt="Chesterfield Group Logo" class="logo">
+            <img src="public/img/burns.svg" alt="Burns & Wilcox Logo" class="logo">
+            <img src="public/img/lochain.jpg" alt="Lochain Patrick Logo" class="logo">
+            <img src="public/img/node.png" alt="Node International Logo" class="logo">
+            <img src="public/img/cran.png" alt="Cranbrook Logo" class="logo">
+        </div>
+    </footer>
+
+    <!-- Include Vue.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+    <!-- Include user-ticket.js script -->
+    <script type="module" src="/public/js/user-ticket.js"></script>
+
+</body>
+
+</html>

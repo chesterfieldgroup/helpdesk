@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="32x32" href="public/img/favicon.ico">
+    <title>Submit New IT Support Ticket</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="public/styles/user-ticket.css">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <!-- Home Button -->
+        <a href="/" class="btn btn-home">
+            <i class="fas fa-home"></i> Home
+        </a>
+    
+        <!-- Submit a Ticket Button -->
+        <a href="/user-tickets" class="btn btn-submit">
+            <i class="fas fa-ticket-alt"></i> View/Edit Existing Tickets
+        </a>
+    </div>
+
+    <div class="container mt-4" id="app">
+        <h2>IT Support Request Form</h2>
+        <form id="support-form" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="subject">Issue Summary</label>
+                <input type="text" class="form-control" id="subject" name="subject"
+                    placeholder="Enter the subject of your problem" required>
+            </div>
+            <div class="form-group">
+                <label for="detail">Issue Details</label>
+                <textarea class="form-control" id="detail" name="detail" rows="3"
+                    placeholder="Describe the problem in as much detail as possible, copy and paste any error messages"
+                    required></textarea>
+                <small class="form-text text-muted">Tip: You can paste screenshots directly into this field!</small>
+            </div>
+            <div class="form-group">
+                <label for="screenshots">Upload Screenshots (If Applicable)</label>
+                <input type="file" class="form-control-file" id="screenshots" name="screenshots" multiple
+                    accept=".docx,.xlsx,.pptx,.pdf,image/*,video/*,audio/*">
+                <small class="form-text text-muted">File number limit: 10, Single file size limit: 1GB, Allowed file
+                    types: Word, Excel, PPT, PDF, Image, Video, Audio</small>
+            </div>
+            <div class="form-group">
+                <label>Uploaded Files:</label>
+                <ul id="uploaded-files-list"></ul>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        <div id="response-message" class="alert custom-alert" role="alert" style="display: none;"></div>
+    </div>
+
+    <footer>
+        <div class="logo-container">
+            <img src="public/img/kfg-logo-lg.jpg" alt="H.W. Kaufman Logo" class="logo">
+            <img src="public/img/chester.jpg" alt="Chesterfield Group Logo" class="logo">
+            <img src="public/img/burns.svg" alt="Burns & Wilcox Logo" class="logo">
+            <img src="public/img/lochain.jpg" alt="Lochain Patrick Logo" class="logo">
+            <img src="public/img/node.png" alt="Node International Logo" class="logo">
+            <img src="public/img/cran.png" alt="Cranbrook Logo" class="logo">
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="/public/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Fetch the admin status from the server
+            fetch('/api/is-admin')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.isAdmin) {
+                        // Hide the "Admin" link if the user is not an admin
+                        const adminLink = document.getElementById('admin-link');
+                        if (adminLink) {
+                            adminLink.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error fetching admin status:', error));
+        });
+    </script>
+
+
+</body>
+
+</html>

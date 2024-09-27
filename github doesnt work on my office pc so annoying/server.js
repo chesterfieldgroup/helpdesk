@@ -114,6 +114,11 @@ app.get('/', auth.ensureAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, 'public/pages', 'index.html'));  // Adjust the path as needed
 });
 
+app.get('/api/user-info', auth.ensureAuthenticated, (req, res) => {
+    const name = req.session.account.idTokenClaims.name;  // Access the name from Azure claims
+    res.json({ name: name });
+});
+
 // Serve the ticket logging page (ticket.html) on the /ticket route
 app.get('/ticket', auth.ensureAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, 'public/pages', 'ticket.html'));
@@ -176,7 +181,24 @@ app.get('/api/user-tickets', auth.ensureAuthenticated, (req, res) => {
     }
 });
 
+// API route to update a ticket
+app.post('/api/update-ticket/:id', auth.ensureAuthenticated, (req, res) => {
+    const { id } = req.params;
+    const updatedTicket = req.body;  // Get the updated ticket data from the request body
 
+    const filePath = path.join(__dirname, 'queries.json');
+    let tickets = require(filePath);
+
+    // Find the ticket by ID and update it
+    const ticketIndex = tickets.findIndex(ticket => ticket.id === id);
+    if (ticketIndex !== -1) {
+        tickets[ticketIndex] = { ...tickets[ticketIndex], ...updatedTicket };  // Merge the updates
+        fs.writeFileSync(filePath, JSON.stringify(tickets, null, 2));  // Save the updated tickets to file
+        res.json({ success: true, message: 'Ticket updated successfully.' });
+    } else {
+        res.status(404).json({ success: false, message: 'Ticket not found' });
+    }
+});
 
 
 // API route to withdraw a ticket

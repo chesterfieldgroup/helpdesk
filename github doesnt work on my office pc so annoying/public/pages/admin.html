@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Support Hub - Admin Page</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="public/styles/user-ticket.css">
+    <script type="module">
+        import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js';
+        window.Vue = Vue; // Make Vue globally accessible
+    </script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">Back to Home Page</a>
+    </nav>
+
+    <div class="container mt-4" id="admin-app">
+        <h2>Admin Dashboard</h2>
+
+        <!-- Filter Toggle Button -->
+        <button class="btn btn-secondary mb-3" @click="toggleFilterPanel">
+            {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
+        </button>
+
+        <!-- Filter Search Panel -->
+        <div v-if="showFilters" class="card mb-3">
+            <div class="card-header">
+                Filter Search Panel
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 form-group">
+                        <label for="searchSubject">Search by Subject:</label>
+                        <input type="text" id="searchSubject" v-model="searchSubject" class="form-control"
+                            placeholder="Enter Subject to search">
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="searchId">Search by ID:</label>
+                        <input type="text" id="searchId" v-model="searchId" class="form-control"
+                            placeholder="Enter ID to search">
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="searchUsername">Search by Username:</label>
+                        <input type="text" id="searchUsername" v-model="searchUsername" class="form-control"
+                            placeholder="Enter Username to search">
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="filterEngineer">Filter by Engineer:</label>
+                        <select id="filterEngineer" v-model="filterEngineer" class="form-control">
+                            <option value="">All</option>
+                            <option value="Jack">Jack</option>
+                            <option value="Sean">Sean</option>
+                            <option value="Nik">Nik</option>
+                            <option value="Sean + Jack">Sean + Jack</option>
+                            <option value="Nik + Sean">Nik + Sean</option>
+                            <option value="Full Squad">Full Squad</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="filterStatus">Filter by Status:</label>
+                        <select id="filterStatus" v-model="filterStatus" class="form-control">
+                            <option value="">All</option>
+                            <option value="Open">Open</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="startDate">Start Date:</label>
+                        <input type="date" id="startDate" v-model="startDate" class="form-control">
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="endDate">End Date:</label>
+                        <input type="date" id="endDate" v-model="endDate" class="form-control">
+                    </div>
+                    <div class="col-md-4 form-check">
+                        <input class="form-check-input" type="checkbox" id="hasScreenshots" v-model="hasScreenshots">
+                        <label class="form-check-label" for="hasScreenshots">Only Show Queries with Screenshots</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button @click="toggleSortOrder" class="btn btn-secondary mb-3">
+            Toggle Sort Order ({{ sortOrder === 'asc' ? 'Oldest First' : 'Newest First' }})
+        </button>
+
+        <!-- Checkbox Section -->
+        <div class="checkbox-container">
+            <label><input type="checkbox" v-model="visibleColumns.id"> ID</label>
+            <label><input type="checkbox" v-model="visibleColumns.user"> User</label>
+            <label><input type="checkbox" v-model="visibleColumns.timestamp"> Timestamp</label>
+            <label><input type="checkbox" v-model="visibleColumns.subject"> Subject</label>
+            <label><input type="checkbox" v-model="visibleColumns.detail"> Detail</label>
+            <label><input type="checkbox" v-model="visibleColumns.screenshots"> Screenshots</label>
+            <label><input type="checkbox" v-model="visibleColumns.engineer"> Engineer</label>
+            <label><input type="checkbox" v-model="visibleColumns.status"> Status</label>
+            <label><input type="checkbox" v-model="visibleColumns.resolvement"> Resolvement</label>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th v-if="visibleColumns.id">ID</th>
+                        <th v-if="visibleColumns.user">User</th>
+                        <th v-if="visibleColumns.timestamp">Timestamp</th>
+                        <th v-if="visibleColumns.subject">Subject</th>
+                        <th v-if="visibleColumns.detail">Detail</th>
+                        <th v-if="visibleColumns.screenshots">Screenshots</th>
+                        <th v-if="visibleColumns.engineer">Engineer</th>
+                        <th v-if="visibleColumns.status">Status</th>
+                        <th v-if="visibleColumns.resolvement">Resolvement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="query in sortedQueries" :key="query.id">
+                        <td v-if="visibleColumns.id">{{ query.id }}</td>
+                        <td v-if="visibleColumns.user">{{ query.user }}</td>
+                        <td v-if="visibleColumns.timestamp">{{ formatTimestamp(query.timestamp) }}</td>
+                        <td v-if="visibleColumns.subject">{{ query.subject }}</td>
+                        <td v-if="visibleColumns.detail">{{ query.detail }}</td>
+                        <td v-if="visibleColumns.screenshots">
+                            <!-- Only show the Toggle Images button if screenshots exist -->
+                            <div v-if="query.screenshots && query.screenshots.length > 0">
+                                <button @click="toggleImageVisibility(query)" class="btn btn-info no-focus">Toggle
+                                    Images</button>
+                                <div v-if="query.showImage">
+                                    <ul>
+                                        <li v-for="screenshot in query.screenshots" :key="screenshot">
+                                            <img v-if="isImage(screenshot)" :src="screenshot"
+                                                class="img-thumbnail w-100" />
+                                            <a v-else :href="screenshot" target="_blank">View File</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </td>
+                        <td v-if="visibleColumns.engineer" @click="updateEngineer(query)" class="engineer-assign-btn">{{
+                            query.engineer || 'Click to Assign Engineer' }}</td>
+                        <td v-if="visibleColumns.status" :class="{
+                            'status-open': query.status === 'Open',
+                            'status-inprogress': query.status === 'In Progress',
+                            'status-completed': query.status === 'Completed',
+                            'status-withdrawn': query.status === 'Withdrawn'
+                        }" @click="updateStatus(query)">
+                            {{ query.status }}
+                        </td>
+                        <td v-if="visibleColumns.resolvement">
+                            <textarea v-model="query.resolvement" @blur="updateResolvement(query)"
+                                @input="adjustTextareaHeight" class="resolvement-input"
+                                style="resize: none; overflow-y: auto; max-height: 300px;"
+                                placeholder="Enter resolvement detail"></textarea>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white text-center py-3 mt-4">
+        <p>&copy; 2023 H.W. Kaufman Group IT Support. All rights reserved.</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script type="module" src="public/js/admin-app.js"></script>
+</body>
+
+</html>
