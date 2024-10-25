@@ -5,58 +5,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" sizes="32x32" href="public/img/favicon.ico">
-    <title>H.W Kaufman IT Support Hub</title>
-    <link rel="stylesheet" href="public/styles/style.css">
+    <title>Submit New IT Support Ticket</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="public/styles/user-ticket.css">
 </head>
 
 <body>
-    <div class="logo-container">
-        <img src="public/img/kfg-logo-lg.jpg" alt="H.W. Kaufman Logo" class="logo">
-        <img src="public/img/chester.jpg" alt="Chesterfield Group Logo" class="logo">
-        <img src="public/img/burns.svg" alt="Burns & Wilcox Logo" class="logo">
-        <img src="public/img/lochain.jpg" alt="Lochain Patrick Logo" class="logo">
-        <img src="public/img/node.png" alt="Node International Logo" class="logo">
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <!-- Home Button -->
+        <a href="/" class="btn btn-home">
+            <i class="fas fa-home"></i> Home
+        </a>
+    
+        <!-- Submit a Ticket Button -->
+        <a href="/user-tickets" class="btn btn-submit">
+            <i class="fas fa-ticket-alt"></i> View/Edit Existing Tickets
+        </a>
     </div>
 
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <div class="navbar-nav ml-auto d-flex align-items-center">
-                <a id="admin-link" class="nav-link btn mx-2" href="/admin">Admin</a>
-                <a class="nav-link btn mx-2" href="/faq">FAQ</a>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container mt-4" id="app">
+    <div class="main-container" id="app">
         <h2>IT Support Request Form</h2>
-        <form id="support-form" enctype="multipart/form-data">
+        <form id="support-form" @submit="handleFormSubmit" enctype="multipart/form-data">
+
+            <!-- Step 1: Category Selection -->
             <div class="form-group">
-                <label for="subject">Issue Summary</label>
-                <input type="text" class="form-control" id="subject" name="subject"
-                    placeholder="Enter the subject of your problem" required>
+                <label for="category">Category</label>
+                <select class="form-control" id="category" v-model="selectedCategory" required>
+                    <option disabled value="">Select a Category</option>
+                    <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
+                </select>
             </div>
-            <div class="form-group">
-                <label for="detail">Issue Details</label>
-                <textarea class="form-control" id="detail" name="detail" rows="3"
-                    placeholder="Describe the problem in as much detail as possible, copy and paste any error messages"
-                    required></textarea>
-                <small class="form-text text-muted">Tip: You can paste screenshots directly into this field!</small>
+            
+            <!-- Step 2: Subcategory Selection -->
+            <div class="form-group" v-if="subcategories.length > 0">
+                <label for="subcategory">Subcategory</label>
+                <select class="form-control" id="subcategory" v-model="selectedSubcategory" required>
+                    <option disabled value="">Select a Subcategory</option>
+                    <option v-for="subcategory in subcategories" :key="subcategory" :value="subcategory">{{ subcategory }}</option>
+                </select>
             </div>
-            <div class="form-group">
-                <label for="screenshots">Upload Screenshots (If Applicable)</label>
-                <input type="file" class="form-control-file" id="screenshots" name="screenshots" multiple
-                    accept=".docx,.xlsx,.pptx,.pdf,image/*,video/*,audio/*">
-                <small class="form-text text-muted">File number limit: 10, Single file size limit: 1GB, Allowed file
-                    types: Word, Excel, PPT, PDF, Image, Video, Audio</small>
+            
+            <!-- Step 3: Detail Field -->
+            <div class="form-group" v-if="selectedSubcategory">
+                <label for="detail">Please Provide More Details</label>
+                <textarea class="form-control" id="detail" v-model="detail" rows="3"
+                    placeholder="Describe the problem in as much detail as possible" required></textarea>
+                <!-- Error message for invalid detail input -->
+                <div v-if="detailError" class="alert alert-danger">{{ detailError }}</div>
             </div>
-            <div class="form-group">
-                <label>Uploaded Files:</label>
-                <ul id="uploaded-files-list"></ul>
+            
+            <!-- Step 4: Screenshot Upload -->
+            <div v-if="showScreenshots">
+                <div class="form-group">
+                    <label for="screenshots">Upload Screenshots (If Applicable)</label>
+                    <input type="file" class="form-control-file" id="screenshots" @change="handleFileInputChange" multiple
+                        accept="image/*,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                    <ul v-if="accumulatedFiles.length">
+                        <li v-for="file in accumulatedFiles" :key="file.name">{{ file.name }}</li>
+                    </ul>
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
+            
+            <!-- Submit Button -->
+            <div v-if="showScreenshots">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
         </form>
-        <div id="response-message" class="alert custom-alert" role="alert" style="display: none;"></div>
+    
+            <!-- Response message -->
+            <div v-if="showResponseMessage" class="alert alert-info">
+            {{ responseMessage }}
+            </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>

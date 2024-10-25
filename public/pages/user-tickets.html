@@ -6,111 +6,177 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Ticket History - Kaufman Hub</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="public/styles/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="public/styles/user-ticket.css">
 </head>
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">Kaufman Hub</a>
-            <ul class="navbar-nav ml-auto">
-            </ul>
-        </div>
-    </nav>
+    <div class="navbar">
+        <!-- Home Button -->
+        <a href="/" class="btn btn-home">
+            <i class="fas fa-home"></i> Home
+        </a>
+
+        <!-- Submit a Ticket Button -->
+        <a href="/ticket" class="btn btn-submit">
+            <i class="fas fa-ticket-alt"></i> Submit a Ticket
+        </a>
+    </div>
 
     <!-- Ticket History Section -->
-    <!-- Vue mount point -->
-    <div id="app" class="container my-5">
+    <div class="main-container" id="app">
         <h2>Your Ticket History</h2>
         <p>Here you can view the progress of your support tickets and take actions like withdrawing a ticket.</p>
-    
+
+        <!-- Date range filter -->
+        <div class="form-row mb-3">
+            <div class="col">
+                <label for="start-date">Start Date:</label>
+                <input type="date" v-model="startDate" id="start-date" class="form-control">
+            </div>
+            <div class="col">
+                <label for="end-date">End Date:</label>
+                <input type="date" v-model="endDate" id="end-date" class="form-control">
+            </div>
+        </div>
+        
+        <!-- Search Bar -->
+        <div class="form-group">
+            <input type="text" class="form-control" placeholder="Search tickets..." v-model="searchQuery"
+                @input="searchTickets">
+        </div>
+
         <!-- Ticket Table -->
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Subject</th>
-                    <th>Status</th>
-                    <th>Urgency</th>
-                    <th>Date Submitted</th>
-                    <th>Engineer</th>
-                    <th>Detail</th>
-                    <th>Resolvement</th>
-                    <th>Progress</th>
-                    <th>Screenshots</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="ticket in tickets" :key="ticket.id">
-                    <td>{{ ticket.id }}</td>
-                    <td>{{ ticket.subject }}</td>
-                    <td>{{ ticket.status }}</td>
-                    <td>{{ ticket.urgency || 'N/A' }}</td>
-                    <td>{{ formatDate(ticket.timestamp) }}</td>
-                    <td>{{ ticket.engineer || 'Unassigned' }}</td>
-                    <td>{{ ticket.detail }}</td>
-                    <td>{{ ticket.resolvement || 'Pending' }}</td>
-                    <td>
-                        <div class="progress">
-                            <div class="progress-bar" role="progressbar" :class="getProgressBarClass(ticket.status)"
-                                :style="getProgressWidth(ticket.status)" aria-valuenow="50" aria-valuemin="0"
-                                aria-valuemax="100">
-                                {{ ticket.status }}
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Category</th>
+                        <th>Subcategory</th>
+                        <th>Status</th>
+                        <th>Urgency</th>
+                        <th>Date Submitted</th>
+                        <th>Engineer</th>
+                        <th>Detail</th>
+                        <th>Resolvement</th>
+                        <th>Screenshots</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="ticket in sortedTickets" :key="ticket.id">
+                        <td data-label="ID">{{ ticket.id }}</td>
+                        <td data-label="Category">{{ ticket.category }}</td>
+                        <td data-label="Subcategory">{{ ticket.subcategory }}</td>
+                        <td data-label="Status" :class="{
+                                'status-open': ticket.status === 'Open',
+                                'status-inprogress': ticket.status === 'In Progress',
+                                'status-completed': ticket.status === 'Completed',
+                                'status-withdrawn': ticket.status === 'Withdrawn'
+                            }">
+                            {{ ticket.status }}
+                        </td>
+                        <td data-label="Urgency">
+                            <select v-model="ticket.urgency" class="form-control" @change="updateTicket(ticket)">
+                                <option value="!">!</option>
+                                <option value="!!">!!</option>
+                                <option value="!!!">!!!</option>
+                            </select>
+                        </td>
+                        <td data-label="Date Submitted">{{ formatDate(ticket.timestamp) }}</td>
+                        <td data-label="Engineer">{{ ticket.engineer || 'Unassigned' }}</td>
+                        <td data-label="Detail">
+                            <textarea v-model="ticket.detail" class="form-control" @input="autoResize" @change="updateTicket(ticket)"
+                                rows="1"></textarea>
+                        </td>
+                        <td data-label="Resolvement">
+                            <textarea class="form-control" readonly>{{ ticket.resolvement || 'Pending' }}</textarea>
+                        </td>
+                        <td data-label="Screenshots">
+                            <div v-if="ticket.screenshots && ticket.screenshots.length > 0">
+                                <button @click="toggleImageVisibility(ticket)" class="btn btn-info no-focus">Toggle Images</button>
+                                <div v-if="ticket.showImage">
+                                    <ul>
+                                        <li v-for="screenshot in ticket.screenshots" :key="screenshot">
+                                            <img v-if="isImage(screenshot)" :src="screenshot" class="img-thumbnail w-100" />
+                                            <a v-else :href="screenshot" target="_blank">View File</a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                    </td>
-                    <td>
-                        <ul>
-                            <li v-for="(screenshot, index) in ticket.screenshots" :key="screenshot + index">
-                                <a :href="screenshot" target="_blank">View Screenshot</a>
-                            </li>
-                        </ul>
-                    </td>
-    
-                    <td>
-                        <button v-if="ticket.status !== 'Completed'" @click="withdrawTicket(ticket)"
-                            class="btn btn-danger btn-sm">Withdraw</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    
-        <!-- Withdraw Ticket Confirmation Modal -->
-        <div class="modal fade" id="withdrawModal" tabindex="-1" role="dialog" aria-labelledby="withdrawModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="withdrawModalLabel">Withdraw Ticket</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        Are you sure you want to withdraw this ticket? This action cannot be undone.
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-danger" @click="confirmWithdraw">Withdraw Ticket</button>
-                    </div>
+                        </td>
+
+                        <td data-label="Actions">
+                            <button @click="withdrawTicket(ticket)" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <nav v-if="numberOfPages > 1" aria-label="Ticket Pagination">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" v-for="page in numberOfPages" :key="page"
+                    :class="{ active: currentPage === page }">
+                    <a class="page-link" href="#" @click.prevent="changePage(page)">
+                        {{ page }}
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+
+    <!-- Withdraw Ticket Confirmation Modal -->
+    <div class="modal fade" id="withdrawModal" tabindex="-1" role="dialog" aria-labelledby="withdrawModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="withdrawModalLabel">Withdraw Ticket</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to withdraw this ticket? This action cannot be undone.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" @click="confirmWithdraw">Withdraw Ticket</button>
                 </div>
             </div>
         </div>
     </div>
+    </div>
 
+
+
+    <footer>
+        <div class="logo-container">
+            <img src="public/img/kfg-logo-lg.jpg" alt="H.W. Kaufman Logo" class="logo">
+            <img src="public/img/chester.jpg" alt="Chesterfield Group Logo" class="logo">
+            <img src="public/img/burns.svg" alt="Burns & Wilcox Logo" class="logo">
+            <img src="public/img/lochain.jpg" alt="Lochain Patrick Logo" class="logo">
+            <img src="public/img/node.png" alt="Node International Logo" class="logo">
+            <img src="public/img/cran.png" alt="Cranbrook Logo" class="logo">
+        </div>
+    </footer>
 
     <!-- Include Vue.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
-
-    <!-- Other necessary scripts -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
     <!-- Include user-ticket.js script -->
-    <script type="module" src="/public/js/user-ticket.js"></script>
+    <script src="/public/js/user-ticket.js"></script>
 
 </body>
 

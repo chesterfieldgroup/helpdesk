@@ -11,10 +11,30 @@ body {
 
 .container {
     width: 100%;
+    height: 100%;
     max-width: 100%;
     margin: 0 !important;
     padding: 0 15px;
     padding-bottom: 15px;
+}
+
+/* Center Content and Add Padding */
+.main-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    margin: 25px;
+    /* Centers the content */
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 25px;
+}
+
+footer {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* Table Styles */
@@ -61,6 +81,10 @@ body {
     width: 100%;
     box-sizing: border-box;
     margin: 0;
+}
+
+.alert {
+    margin-top: 1rem;
 }
 
 /* Textarea Control */
@@ -162,16 +186,16 @@ textarea[readonly] {
 /* Home and Submit a Ticket Button Styles */
 .btn-home,
 .btn-submit {
-    display: inline-flex;
+    display: inline-block;
     align-items: center;
     font-size: 16px;
-    padding: 0.75rem;
-    border-radius: 0.25rem;
+    padding: 10px 20px;
+    border-radius: 5px;
     color: #fff !important;
     border: none;
     text-align: center;
     width: auto;
-    margin: 0;
+    margin-right: 10px;
     /* Ensure full width */
     transition: background-color 0.3s ease;
 }
@@ -220,6 +244,7 @@ textarea[readonly] {
 
 /* Custom Logo Space */
 .logo-container {
+    margin-top: auto;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -237,6 +262,61 @@ textarea[readonly] {
     /* Adjusted margins for better spacing */
 }
 
+.home-logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 1rem;
+    background-color: #ffffff;
+    flex-wrap: wrap;
+    /* Added to allow wrapping on smaller screens */
+}
+
+.btn-secondary {
+    padding: 1rem 1.2rem;
+    margin-right: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    align-items: center !important;
+    color: rgba(255, 255, 255, 1);
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.274);
+    border-width: 4px;
+    border-color: rgba(182, 208, 255, 0.92);
+}
+
+.btn-secondary:hover{
+    background-color: rgba(182, 208, 255, 0.92);
+    border-color: rgba(182, 208, 255, 0.92);
+
+}
+
+.btn-third {
+    padding: 1rem 1.2rem;
+    margin-right: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    align-items: center !important;
+    color: rgb(0, 0, 0);
+    font-weight: bold;
+    background-color: rgb(255, 255, 255);
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0.92);
+}
+
+.row {
+    padding: 1.5rem;
+    margin: 0.5rem;
+    background-color:rgb(28, 38, 96);
+    border-radius:8px;
+    color: white;
+}
+
+.row-secondary {
+    background-color: white;
+    color: black;
+}
+
 /* Responsive Styles for Smaller Screens */
 @media (max-width: 1000px) {
 
@@ -245,8 +325,11 @@ textarea[readonly] {
         width: 100%;
     }
 
-    .btn {
-        padding: .75rem 1rem;
+    .btn-secondary {
+        padding: 1rem 1.2rem;
+        margin-right: 1rem;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
         align-items: center !important;
     }
 
@@ -297,15 +380,15 @@ textarea[readonly] {
     /* Stack the navbar buttons vertically */
     .navbar {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: flex-start;
     }
 
     /* Full width for buttons on small screens */
     .btn-home,
     .btn-submit {
-        width: 100%;
-        margin-bottom: 10px;
+        width: auto;
+        margin-bottom: 0;
     }
 
     .navbar-brand,

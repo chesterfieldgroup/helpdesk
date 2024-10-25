@@ -154,6 +154,11 @@ app.get('/admin', auth.ensureAuthenticated, ensureAdmin, (req, res) => {
     res.sendFile(path.join(__dirname, 'public/pages/admin.html'));
 });
 
+// Route to serve the contact cards page
+app.get('/contact-book', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/pages/contact-book.html'));
+});
+
 // Serve the user ticket view page
 app.get('/user-tickets', auth.ensureAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, 'public/pages', 'user-tickets.html'));  // Adjust path if needed
@@ -201,8 +206,10 @@ app.post('/api/update-ticket/:id', auth.ensureAuthenticated, (req, res) => {
 });
 
 
+
+
 // API route to withdraw a ticket
-app.post('/api/withdraw-ticket/:id', auth.ensureAuthenticated, (req, res) => {
+app.delete('/api/withdraw-ticket/:id', auth.ensureAuthenticated, (req, res) => {
     const { id } = req.params;
     const userEmail = req.session.account.username;  // Get the user's email from the session
 
@@ -227,31 +234,35 @@ app.post('/api/withdraw-ticket/:id', auth.ensureAuthenticated, (req, res) => {
 });
 
 
+
 // API endpoint to handle form submission (protected)
 app.post('/api/submit-form', auth.ensureAuthenticated, checkSubmissionRateLimit, upload.array('screenshots', 10), async (req, res) => {
-    const { subject, detail } = req.body;
+    console.log('Received fields:', req.body);
+console.log('Received files:', req.files);
+
+    const { category, subcategory, detail } = req.body;
     const screenshotFiles = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
     const userEmail = req.session.account.username;  // Get the user's email from the session
 
-    const filePath = path.join(__dirname, 'queries.json');
-    let data = [];
+    if (!category || !subcategory || !detail) {
+        return res.status(400).json({ success: false, message: 'Category, subcategory, and detail are required fields.' });
+    }
+
+    const newRequest = {
+        id: generateUniqueId(),
+        user: userEmail,
+        timestamp: new Date().toISOString(),
+        category,
+        subcategory,
+        detail,
+        screenshots: screenshotFiles,
+        status: "Open",
+        resolvement: ""
+    };
+
     try {
-        if (!subject || !detail) {
-            throw new Error('Subject and detail are required fields.');
-        }
-        data = fs.existsSync(filePath) ? require(filePath) : [];
-
-        const newRequest = {
-            id: generateUniqueId(),
-            user: userEmail,
-            timestamp: new Date().toISOString(),
-            subject,
-            detail,
-            screenshots: screenshotFiles,
-            status: "Open",
-            resolvement: ""
-        };
-
+        const filePath = path.join(__dirname, 'queries.json');
+        let data = fs.existsSync(filePath) ? require(filePath) : [];
         data.push(newRequest);
         fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 
@@ -261,7 +272,7 @@ app.post('/api/submit-form', auth.ensureAuthenticated, checkSubmissionRateLimit,
                 subject: `New IT Support Ticket from ${userEmail}`,
                 body: {
                     contentType: "Text",
-                    content: `A new IT support ticket has been submitted by ${userEmail}.\n\nSubject: ${subject}\nDetails: ${detail}\n\nScreenshots: ${screenshotFiles.join(', ')}` 
+                    content: `A new IT support ticket has been submitted by ${userEmail}.\n\nCategory: ${category}\nSubcategory: ${subcategory}\nDetails: ${detail}\n\nScreenshots: ${screenshotFiles.join(', ')}`
                 },
                 toRecipients: [{
                     emailAddress: {
@@ -278,46 +289,46 @@ app.post('/api/submit-form', auth.ensureAuthenticated, checkSubmissionRateLimit,
         };
 
         const userConfirmationMessage = {
-        message: {
-        subject: `Your IT Support Ticket has been logged: ${subject}`,
-        body: {
-            contentType: "HTML",  // Changed to HTML for more flexibility
-            content: `
-                <p>Dear ${userEmail},</p>
-                <p>Thank you for submitting a support request. Here are the details:</p>
-                <p><strong>Subject:</strong> ${subject}<br>
-                <strong>Details:</strong> ${detail}</p>
-                <p>Your request is now being handled. You will be contacted by a member of the IT Team shortly.</p>
-                <br>
-                <p>Kind regards,</p>
-                <p>Kaufman London IT Support</p>
-                <br>
-                <img src="cid:chesterfieldLogo" alt="H.W. Kaufman Logo" class="logo">
-            `
-        },
-        toRecipients: [{
-            emailAddress: {
-                address: userEmail
+            message: {
+            subject: `Your IT Support Ticket has been logged: ${category} - ${subcategory}`,
+            body: {
+                contentType: "HTML",
+                content: `
+                    <p>Dear ${userEmail},</p>
+                    <p>Thank you for submitting a support request. Here are the details:</p>
+                    <p><strong>Category:</strong> ${category}<br>
+                    <strong>Subcategory:</strong> ${subcategory}<br>
+                    <strong>Details:</strong> ${detail}</p>
+                    <p>Your request is now being handled. You will be contacted by a member of the IT Team shortly.</p>
+                    <br>
+                    <p>Kind regards,</p>
+                    <p>Kaufman London IT Support</p>
+                    <br>
+                    <img src="cid:chesterfieldLogo" alt="H.W. Kaufman Logo" class="logo">
+                `
+            },
+            toRecipients: [{
+                emailAddress: {
+                    address: userEmail
+                }
+            }],
+            attachments: screenshotFiles.map(file => ({
+                "@odata.type": "#microsoft.graph.fileAttachment",
+                name: file,
+                contentBytes: fs.readFileSync(path.join(__dirname, file)).toString('base64'),
+                contentType: 'application/octet-stream'
+            })).concat([{
+                "@odata.type": "#microsoft.graph.fileAttachment",
+                name: "kfg-logo-lg.jpg",
+                contentBytes: fs.readFileSync(path.join(__dirname, 'public/img/kfg-logo-lg.jpg')).toString('base64'),
+                contentType: 'image/jpeg',
+                contentId: "chesterfieldLogo"
+            }]),
+            internetMessageHeaders: [
+                { name: "x-Content-ID", value: "chesterfieldLogo" }
+            ]
             }
-        }],
-        attachments: screenshotFiles.map(file => ({
-            "@odata.type": "#microsoft.graph.fileAttachment",
-            name: file,
-            contentBytes: fs.readFileSync(path.join(__dirname, file)).toString('base64'),
-            contentType: 'application/octet-stream'
-        })).concat([{
-            "@odata.type": "#microsoft.graph.fileAttachment",
-            name: "kfg-logo-lg.jpg",
-            contentBytes: fs.readFileSync(path.join(__dirname, 'public/img/kfg-logo-lg.jpg')).toString('base64'),
-            contentType: 'image/jpeg',
-            contentId: "chesterfieldLogo"
-        }]),
-        internetMessageHeaders: [
-            { name: "x-Content-ID", value: "chesterfieldLogo" }
-        ]
-        }
         };
-
 
         const emailMessages = [itSupportMessage, userConfirmationMessage];
         await Promise.all(emailMessages.map(message => 

@@ -1,0 +1,140 @@
+:root {
+    /* Custom properties for color and size adjustments */
+    --primary-color: #00447c;
+    --primary-color-hover: #003366;
+    --text-color: #333;
+    --text-light-color: #666;
+    --border-radius: 15px;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --card-padding: clamp(15px, 2vw, 25px);
+    /* Fluid padding */
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Use CSS Grid for a responsive and modern layout */
+#contact-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    /* Automatically fit cards */
+    gap: 20px;
+}
+
+/* Card Styling */
+.card-container {
+    display: block;
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 8px var(--shadow-color);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    overflow: hidden;
+}
+
+.card-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Using aspect-ratio for modern image handling */
+.card img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    height: 100%;
+    /* Ensure consistent aspect ratio for images */
+    object-fit: cover;
+    display: block;
+    border-bottom: 1px solid #ddd;
+}
+
+.card-body {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.card-title {
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    /* Fluid font sizes */
+    font-weight: bold;
+    color: var(--text-color);
+    margin-bottom: 10px;
+}
+
+.card-text {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    /* Fluid font sizes */
+    color: var(--text-light-color);
+    margin-bottom: 15px;
+}
+
+/* Accessibility - button styling with aria roles */
+.btn-primary {
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    color: #fff;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-color-hover);
+}
+
+.btn-primary:focus,
+.btn-primary:active {
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Add aria role to buttons for accessibility */
+.btn-primary[role="button"] {
+    display: inline-block;
+}
+
+/* Footer for button alignment */
+.card-footer {
+    /* Align the button to the bottom */
+    padding: 1rem;
+    text-align: center;
+}
+
+/* Lazy load images for better performance */
+img[loading="lazy"] {
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+img[loading="lazy"].lazyloaded {
+    opacity: 1;
+}
+
+/* Motion settings for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none;
+        transition: none;
+    }
+}
+
+/* Responsive tweaks for mobile */
+@media (max-width: 768px) {
+    .card img {
+        aspect-ratio: 4/3;
+        /* Change image ratio for mobile */
+    }
+}
