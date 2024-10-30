@@ -13,79 +13,93 @@
 </head>
 
 <body>
+        <!-- Navbar -->
+        <div class="navbar">
+            <!-- Home Button -->
+            <a href="/" class="btn btn-home">
+                <i class="fas fa-home"></i> Home
+            </a>
 
-    <!-- Navbar -->
-    <div class="navbar">
-        <!-- Home Button -->
-        <a href="/" class="btn btn-home">
-            <i class="fas fa-home"></i> Home
-        </a>
-    
-        <!-- Submit a Ticket Button -->
-        <a href="/user-tickets" class="btn btn-submit">
-            <i class="fas fa-ticket-alt"></i> View/Edit Existing Tickets
-        </a>
-    </div>
+            <a href="/ticket" class="btn btn-new">
+                <i class="fas fa-ticket-alt"></i> Submit New IT Support Ticket
+            </a>
+        
+            <!-- Submit a Ticket Button -->
+            <a href="/user-tickets" class="btn btn-submit">
+                <i class="fas fa-ticket-alt"></i> View/Edit Existing Tickets
+            </a>
+        </div>
 
     <div class="main-container" id="app">
-        <h2>IT Support Request Form</h2>
-        <form id="support-form" @submit="handleFormSubmit" enctype="multipart/form-data">
+        <div v-if="!showOnlyOptions">
+            <h2>IT Support Request Form</h2>
+            <form id="support-form" @submit="handleFormSubmit" enctype="multipart/form-data">
 
-            <!-- Step 1: Category Selection -->
-            <div class="form-group">
-                <label for="category">Category</label>
-                <select class="form-control" id="category" v-model="selectedCategory" required>
-                    <option disabled value="">Select a Category</option>
-                    <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
-                </select>
-            </div>
-            
-            <!-- Step 2: Subcategory Selection -->
-            <div class="form-group" v-if="subcategories.length > 0">
-                <label for="subcategory">Subcategory</label>
-                <select class="form-control" id="subcategory" v-model="selectedSubcategory" required>
-                    <option disabled value="">Select a Subcategory</option>
-                    <option v-for="subcategory in subcategories" :key="subcategory" :value="subcategory">{{ subcategory }}</option>
-                </select>
-            </div>
-            
-            <!-- Step 3: Detail Field -->
-            <div class="form-group" v-if="selectedSubcategory">
-                <label for="detail">Please Provide More Details</label>
-                <textarea class="form-control" id="detail" v-model="detail" rows="3"
-                    placeholder="Describe the problem in as much detail as possible" required></textarea>
-                <!-- Error message for invalid detail input -->
-                <div v-if="detailError" class="alert alert-danger">{{ detailError }}</div>
-            </div>
-            
-            <!-- Step 4: Screenshot Upload -->
-            <div v-if="showScreenshots">
+                <!-- Step 1: Category Selection -->
                 <div class="form-group">
-                    <label for="screenshots">Upload Screenshots (If Applicable)</label>
-                    <input type="file" class="form-control-file" id="screenshots" @change="handleFileInputChange" multiple
-                        accept="image/*,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-                    <ul v-if="accumulatedFiles.length">
-                        <li v-for="file in accumulatedFiles" :key="file.name">{{ file.name }}</li>
-                    </ul>
+                    <label for="category">Category</label>
+                    <select class="form-control" id="category" v-model="selectedCategory" required>
+                        <option disabled value="">Select a Category</option>
+                        <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
+                    </select>
                 </div>
-            </div>
-            
-            <!-- Submit Button -->
-            <div v-if="showScreenshots">
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-        </form>
-    
-            <!-- Response message -->
-            <div v-if="showResponseMessage" class="alert alert-info">
-            {{ responseMessage }}
-            </div>
-    </div>
 
+                <!-- Step 2: Subcategory Selection -->
+                <div class="form-group" v-if="subcategories.length > 0">
+                    <label for="subcategory">Subcategory</label>
+                    <select class="form-control" id="subcategory" v-model="selectedSubcategory" required>
+                        <option disabled value="">Select a Subcategory</option>
+                        <option v-for="subcategory in subcategories" :key="subcategory" :value="subcategory">{{ subcategory }}</option>
+                    </select>
+                </div>
+
+                <!-- Step 3: Detail Field -->
+                <div class="form-group" v-if="selectedSubcategory">
+                    <label for="detail">Please Provide More Details</label>
+                    <textarea class="form-control" id="detail" v-model="detail" rows="3"
+                        placeholder="Describe the problem in as much detail as possible" required></textarea>
+                    <!-- Error message for invalid detail input -->
+                    <div v-if="detailError" class="alert alert-danger">{{ detailError }}</div>
+                </div>
+
+                <!-- Step 4: Screenshot Upload -->
+                <div v-if="showScreenshots">
+                    <div class="form-group">
+                        <label for="screenshots">Upload Screenshots (If Applicable)</label>
+                        <input type="file" class="form-control-file" id="screenshots" @change="handleFileInputChange" multiple
+                            accept="image/*,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                        <ul v-if="accumulatedFiles.length">
+                            <li v-for="file in accumulatedFiles" :key="file.name">{{ file.name }}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div v-if="showScreenshots">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+        
+                <!-- Response message -->
+                <div v-if="showResponseMessage" class="alert alert-info">
+                {{ responseMessage }}
+                </div>
+        </div>
+
+        <div v-if="showResponseMessage" class="success-message">
+            {{ responseMessage }}
+        </div>
+
+        <div v-if="showOnlyOptions" class="button-options mt-3">
+            <p class="p-ticket"> Please click one of the buttons above to progress.
+            </p>
+        </div>
+
+    </div>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-    <script src="/public/js/app.js"></script>
+    <script src="/public/js/ticket.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Fetch the admin status from the server

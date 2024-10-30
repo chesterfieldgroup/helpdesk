@@ -19,8 +19,12 @@ body {
 
 .container {
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 1rem;
     padding: 20px;
+}
+
+.card-container {
+    margin: 1rem;
 }
 
 /* Use CSS Grid for a responsive and modern layout */
@@ -28,7 +32,6 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     /* Automatically fit cards */
-    gap: 20px;
 }
 
 /* Card Styling */

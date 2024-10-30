@@ -106,11 +106,11 @@
                         <td v-if="visibleColumns.timestamp">{{ formatTimestamp(query.timestamp) }}</td>
                         <td v-if="visibleColumns.detail">{{ query.detail }}</td>
                         <td data-label="Screenshots">
-                            <div v-if="ticket.screenshots && ticket.screenshots.length > 0">
-                                <button @click="toggleImageVisibility(ticket)" class="btn btn-info no-focus">Toggle Images</button>
-                                <div v-if="ticket.showImage">
+                            <div v-if="query.screenshots && query.screenshots.length > 0">
+                                <button @click="toggleImageVisibility(query)" class="btn btn-info no-focus">Toggle Images</button>
+                                <div v-if="query.showImage">
                                     <ul>
-                                        <li v-for="screenshot in ticket.screenshots" :key="screenshot">
+                                        <li v-for="screenshot in query.screenshots" :key="screenshot">
                                             <img v-if="isImage(screenshot)" :src="screenshot" class="img-thumbnail w-100" />
                                             <a v-else :href="screenshot" target="_blank">View File</a>
                                         </li>

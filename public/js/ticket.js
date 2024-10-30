@@ -11,7 +11,8 @@ new Vue({
         showResponseMessage: false, // Control the visibility of the response message
         showDetails: false, // Controls visibility of the details section
         showScreenshots: false, // Controls visibility of screenshots and submit button
-        detailError: '' // Holds the error message for detail validation
+        detailError: '',
+        showOnlyOptions: false
     },
     watch: {
         selectedCategory(value) {
@@ -88,9 +89,14 @@ new Vue({
             .then(data => {
                 this.showResponseMessage = true;
                 this.responseMessage = data.message;
+                this.showOnlyOptions = true;
                 submitButton.textContent = "Submit";
                 submitButton.disabled = false;
-                setTimeout(() => this.showResponseMessage = false, 5000);
+                // Display success message for 3 seconds, then clear the form content
+                setTimeout(() => {
+                    this.showResponseMessage = false;
+                    this.showOnlyOptions = true; // Show only buttons after delay
+                }, 15000); // 15000ms = 15 seconds
             })
             .catch(error => {
                 console.error('Error details:', error);
@@ -100,6 +106,7 @@ new Vue({
                 submitButton.disabled = false;
                 setTimeout(() => this.showResponseMessage = false, 5000);
             });
+            
         },    
 
         // Handle file input and validate file types and size limits
@@ -125,6 +132,17 @@ new Vue({
                 this.accumulatedFiles = [...this.accumulatedFiles, newFile];
             }
             event.target.value = ""; // Clear input after handling
+        },
+
+        openNewTicket() {
+            this.showOnlyOptions = false; // Reset to show the form again
+            this.selectedCategory = '';
+            this.selectedSubcategory = '';
+            this.detail = '';
+            this.accumulatedFiles = [];
+        },
+        viewExistingTickets() {
+            window.location.href = '/user-tickets';
         }
     }
 });

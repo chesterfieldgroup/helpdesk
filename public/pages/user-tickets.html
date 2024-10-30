@@ -5,9 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Ticket History - Kaufman Hub</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="public/img/favicon.ico">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="public/styles/user-ticket.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 </head>
 
 <body>
@@ -82,21 +84,20 @@
                             <select v-model="ticket.urgency" class="form-control" @change="updateTicket(ticket)">
                                 <option value="!">!</option>
                                 <option value="!!">!!</option>
-                                <option value="!!!">!!!</option>
                             </select>
                         </td>
                         <td data-label="Date Submitted">{{ formatDate(ticket.timestamp) }}</td>
                         <td data-label="Engineer">{{ ticket.engineer || 'Unassigned' }}</td>
                         <td data-label="Detail">
-                            <textarea v-model="ticket.detail" class="form-control" @input="autoResize" @change="updateTicket(ticket)"
-                                rows="1"></textarea>
-                        </td>
+                            <p>{{ ticket.detail }}</p>
+                        </td>                        
                         <td data-label="Resolvement">
                             <textarea class="form-control" readonly>{{ ticket.resolvement || 'Pending' }}</textarea>
                         </td>
                         <td data-label="Screenshots">
                             <div v-if="ticket.screenshots && ticket.screenshots.length > 0">
-                                <button @click="toggleImageVisibility(ticket)" class="btn btn-info no-focus">Toggle Images</button>
+                                <button @click="openImageModal(ticket.screenshots)" class="btn btn-info">View Images</button>
+
                                 <div v-if="ticket.showImage">
                                     <ul>
                                         <li v-for="screenshot in ticket.screenshots" :key="screenshot">
@@ -130,17 +131,12 @@
                 </li>
             </ul>
         </nav>
-    </div>
 
-
-    <!-- Withdraw Ticket Confirmation Modal -->
-    <div class="modal fade" id="withdrawModal" tabindex="-1" role="dialog" aria-labelledby="withdrawModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
+        <div v-if="modalVisible" class="modal-container">
+            <div class="modal-content withdraw-modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="withdrawModalLabel">Withdraw Ticket</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <h5 class="modal-title">Withdraw Ticket</h5>
+                    <button type="button" class="close" @click="closeWithdrawModal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -148,34 +144,50 @@
                     Are you sure you want to withdraw this ticket? This action cannot be undone.
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-danger" @click="confirmWithdraw">Withdraw Ticket</button>
                 </div>
             </div>
         </div>
+
+        <!-- Image Modal -->
+        <div v-if="showImageModal" class="modal-container">
+            <div class="modal-content image-modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ticket Images</h5>
+                    <button type="button" class="close" @click="closeImageModal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div v-for="screenshot in selectedScreenshots" :key="screenshot" class="image-wrapper">
+                        <img :src="screenshot" class="img-fluid" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
     </div>
-    </div>
+
+    
+
 
 
 
     <footer>
         <div class="logo-container">
-            <img src="public/img/kfg-logo-lg.jpg" alt="H.W. Kaufman Logo" class="logo">
-            <img src="public/img/chester.jpg" alt="Chesterfield Group Logo" class="logo">
+            <img src="public\img\H.W.-Kaufman.jpg" alt="H.W. Kaufman Logo" class="logo">
+            <!-- <img src="public/img/chester.jpg" alt="Chesterfield Group Logo" class="logo">
             <img src="public/img/burns.svg" alt="Burns & Wilcox Logo" class="logo">
             <img src="public/img/lochain.jpg" alt="Lochain Patrick Logo" class="logo">
             <img src="public/img/node.png" alt="Node International Logo" class="logo">
-            <img src="public/img/cran.png" alt="Cranbrook Logo" class="logo">
+            <img src="public/img/cran.png" alt="Cranbrook Logo" class="logo"> -->
         </div>
     </footer>
 
-    <!-- Include Vue.js Library -->
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-
-    <!-- Include user-ticket.js script -->
     <script src="/public/js/user-ticket.js"></script>
 
 </body>

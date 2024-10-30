@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="public/styles/user-ticket.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">Home</a>
+    </nav>
+
+    <div class="container mt-4" id="app">
+        <h2>Admin Dashboard</h2>
+
+        <!-- Filter and Sorting Controls -->
+        <div>
+            <button class="btn btn-info" @click="toggleFilterPanel">
+                {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
+            </button>
+            <button class="btn btn-secondary" @click="toggleSortOrder">
+                Sort Order: {{ sortOrder }}
+            </button>
+        </div>
+
+        <!-- Filters -->
+        <div v-if="showFilters" class="filter-section">
+            <label>Search by ID: <input v-model="searchId" placeholder="Enter ID" /></label>
+            <label>Engineer:
+                <select v-model="filterEngineer">
+                    <option value="">All</option>
+                    <option value="Jack">Jack</option>
+                    <option value="Nik">Nik</option>
+                    <!-- Add other options here -->
+                </select>
+            </label>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Status</th>
+                        <th>Engineer</th>
+                        <th>Screenshots</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="query in paginatedQueries" :key="query.id">
+                        <td>{{ query.id }}</td>
+                        <td>{{ query.user }}</td>
+                        <td>{{ query.status }}</td>
+                        <td>{{ query.engineer || 'Unassigned' }}</td>
+                        <td v-if="query.screenshots.length > 0">
+                            <button @click="toggleImageModal(query.screenshots)">View</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div v-if="totalPages > 1" class="pagination">
+            <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
+            <button @click="nextPage" :disabled="currentPage === totalPages">Next</button>
+        </div>
+
+        <!-- Image Modal -->
+        <div v-if="showImageModal" class="modal">
+            <div class="modal-content">
+                <span class="close" @click="closeImageModal">&times;</span>
+                <div v-for="img in selectedScreenshots" :key="img">
+                    <img :src="img" alt="screenshot" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="public/js/test.js"></script>
+</body>
+
+</html>

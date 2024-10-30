@@ -4,94 +4,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FAQ - IT Support Hub</title>
+    <title>FAQ - Kaufman Hub</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="public/img/favicon.ico">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="public/styles/user-ticket.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="/">Home</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+    <!-- Navbar -->
+    <div class="navbar">
+        <!-- Home Button -->
+        <a href="/" class="btn btn-home">
+            <i class="fas fa-home"></i> Home
+        </a>
 
-    <div class="container mt-4">
+        <!-- Submit a Ticket Button -->
+        <a href="/ticket" class="btn btn-submit">
+            <i class="fas fa-ticket-alt"></i> Submit a Ticket
+        </a>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="main-container" id="app">
         <h2>Frequently Asked Questions</h2>
-        <div class="accordion" id="faqAccordion">
+        <p>Find answers to common questions about Kaufman Hub services and support.</p>
 
-            <!-- FAQ 1 -->
-            <div class="card">
-                <div class="card-header" id="headingOne">
+        <!-- FAQ Accordion -->
+        <div id="faqAccordion" class="accordion">
+            <div class="card" v-for="(faq, index) in faqs" :key="index">
+                <div class="card-header" :id="'heading' + index">
                     <h5 class="mb-0">
-                        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne"
-                            aria-expanded="true" aria-controls="collapseOne">
-                            How do I submit a support request?
+                        <button class="btn btn-link" @click="toggleFAQ(index)" 
+                                :aria-expanded="faq.isOpen" :aria-controls="'collapse' + index">
+                            <i :class="faq.isOpen ? 'fas fa-chevron-down' : 'fas fa-chevron-right'"></i> {{ faq.question }}
                         </button>
                     </h5>
                 </div>
 
-                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#faqAccordion">
+                <div :id="'collapse' + index" class="collapse" :class="{ show: faq.isOpen }" 
+                     :aria-labelledby="'heading' + index" data-parent="#faqAccordion">
                     <div class="card-body">
-                        To submit a support request, navigate to the home page and fill out the "IT Support Request
-                        Form." Be sure to include a detailed description of your issue and attach any relevant
-                        screenshots.
+                        {{ faq.answer }}
                     </div>
                 </div>
             </div>
-
-            <!-- FAQ 2 -->
-            <div class="card">
-                <div class="card-header" id="headingTwo">
-                    <h5 class="mb-0">
-                        <button class="btn btn-link collapsed" type="button" data-toggle="collapse"
-                            data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                            What should I include in my support request?
-                        </button>
-                    </h5>
-                </div>
-                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#faqAccordion">
-                    <div class="card-body">
-                        Your support request should include a brief summary of the issue, a detailed description of the
-                        problem, and any screenshots or error messages that might help our team troubleshoot the issue.
-                    </div>
-                </div>
-            </div>
-
-            <!-- FAQ 3 -->
-            <div class="card">
-                <div class="card-header" id="headingThree">
-                    <h5 class="mb-0">
-                        <button class="btn btn-link collapsed" type="button" data-toggle="collapse"
-                            data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                            How long will it take to resolve my issue?
-                        </button>
-                    </h5>
-                </div>
-                <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#faqAccordion">
-                    <div class="card-body">
-                        Resolution times depend on the complexity of the issue. Simple issues might be resolved within a
-                        few hours, while more complex problems could take longer. You can track the status of your
-                        support request via email updates.
-                    </div>
-                </div>
-            </div>
-
-            <!-- Add more FAQs as needed -->
         </div>
     </div>
 
-    <footer class="bg-dark text-white text-center py-3 mt-4">
-        <p>&copy; 2023 H.W. Kaufman Group IT Support. All rights reserved.</p>
+    <footer>
+        <div class="logo-container">
+            <img src="public/img/H.W.-Kaufman.jpg" alt="H.W. Kaufman Logo" class="logo">
+            <!-- Additional logos can be added here -->
+        </div>
     </footer>
 
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="/public/js/FAQ.js"></script>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                faqs: [
+                    { question: "How can I submit a ticket?", answer: "To submit a ticket, click on the 'Submit a Ticket' button on the top menu.", isOpen: false },
+                    { question: "How long does it take to get a response?", answer: "Our support team aims to respond within 24 hours.", isOpen: false },
+                    { question: "What is Kaufman Hub?", answer: "Kaufman Hub is a platform for managing support tickets and services.", isOpen: false },
+                    { question: "Can I withdraw my ticket after submission?", answer: "Yes, you can withdraw a ticket as long as it hasn't been resolved.", isOpen: false }
+                ]
+            },
+            methods: {
+                toggleFAQ(index) {
+                    this.faqs[index].isOpen = !this.faqs[index].isOpen;
+                }
+            }
+        });
+    </script>
+
 </body>
 
 </html>

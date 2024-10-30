@@ -23,6 +23,7 @@
     "nodemailer": "^6.9.14",
     "passport": "^0.7.0",
     "passport-azure-ad": "^4.3.5",
-    "session": "^0.1.0"
+    "session": "^0.1.0",
+    "socket.io": "^4.8.1"
   }
 }

@@ -1,0 +1,93 @@
+/* Hover Effects */
+.btn-home:hover {
+    background-color: #003976;
+}
+
+.btn-submit:hover {
+    background-color: #0056b3;
+}
+
+.btn-new:hover {
+    background-color: #1c7330;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    /* Align buttons to left and right */
+    align-items: center;
+    padding: 1rem 1rem;
+    background-color: #e9ecef;
+    margin: 1rem;
+    justify-content: flex-start
+}
+
+/* Home and Submit a Ticket Button Styles */
+.btn-home,
+.btn-submit,
+.btn-new {
+    display: inline-block;
+    align-items: center;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    color: #fff !important;
+    border: none;
+    text-align: center;
+    width: auto;
+    margin-right: 10px;
+    /* Ensure full width */
+    transition: background-color 0.3s ease;
+}
+
+.btn-home {
+    background-color: #0056b3;
+}
+
+.btn-new {
+    background-color: #28a745;
+}
+
+.btn-submit {
+    background-color: #007bff;
+}
+
+/* Icon Styling for Buttons */
+.btn-home i,
+.btn-submit i,
+.btn-new i {
+    margin-right: 8px;
+    font-size: 18px;
+    position: relative;
+    bottom: 1.5px;
+    color: #fff !important;
+}
+
+/* Responsive Styles for Smaller Screens */
+@media (max-width: 768px) {
+
+    /* Stack the navbar buttons vertically */
+    .navbar {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    /* Full width for buttons on small screens */
+    .btn-home,
+    .btn-submit,
+    .btn-new {
+        width: 100%;
+        margin: 0.35rem;
+
+    }
+
+    .navbar-brand,
+    .navbar-collapse {
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+
+
+}
