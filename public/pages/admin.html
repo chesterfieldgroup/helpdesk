@@ -7,11 +7,14 @@
     <title>IT Support Hub - Admin Page</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="public/styles/user-ticket.css">
+    <link rel="stylesheet" href="public/styles/admin.css">
     <script type="module">
         import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js';
         window.Vue = Vue; // Make Vue globally accessible
     </script>
+    <script src="/socket.io/socket.io.js"></script> <!-- Add this line -->
 </head>
+
 
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -84,6 +87,8 @@
             Toggle Sort Order ({{ sortOrder === 'asc' ? 'Oldest First' : 'Newest First' }})
         </button>
 
+        <button @click="saveAllChanges"  class="btn btn-third mb-3">Save All</button>
+        
         <!-- Table -->
         <div class="table-responsive">
             <table class="table table-bordered">
@@ -101,50 +106,52 @@
                 </thead>
                 <tbody>
                     <tr v-for="query in sortedQueries" :key="query.id">
-                        <td v-if="visibleColumns.id">{{ query.id }}</td>
-                        <td v-if="visibleColumns.user">{{ query.user }}</td>
-                        <td v-if="visibleColumns.timestamp">{{ formatTimestamp(query.timestamp) }}</td>
-                        <td v-if="visibleColumns.detail">{{ query.detail }}</td>
+                        <td v-if="visibleColumns.id" data-label="ID">{{ query.id }}</td>
+                        <td v-if="visibleColumns.user" data-label="User">{{ query.user }}</td>
+                        <td v-if="visibleColumns.timestamp" data-label="Timestamp">{{ formatTimestamp(query.timestamp) }}</td>
+                        <td v-if="visibleColumns.detail" data-label="Detail">{{ query.detail }}</td>
                         <td data-label="Screenshots">
-                            <div v-if="query.screenshots && query.screenshots.length > 0">
-                                <button @click="toggleImageVisibility(query)" class="btn btn-info no-focus">Toggle Images</button>
-                                <div v-if="query.showImage">
-                                    <ul>
-                                        <li v-for="screenshot in query.screenshots" :key="screenshot">
-                                            <img v-if="isImage(screenshot)" :src="screenshot" class="img-thumbnail w-100" />
-                                            <a v-else :href="screenshot" target="_blank">View File</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
+                            <!-- Screenshot code here -->
                         </td>
-
-
-                        <td v-if="visibleColumns.engineer" @click="updateEngineer(query)" class="engineer-assign-btn">{{
-                            query.engineer || 'Click to Assign Engineer' }}</td>
-                        <td v-if="visibleColumns.status" :class="{
-                            'status-open': query.status === 'Open',
-                            'status-inprogress': query.status === 'In Progress',
-                            'status-completed': query.status === 'Completed',
-                            'status-withdrawn': query.status === 'Withdrawn'
-                        }" @click="updateStatus(query)">
-                            {{ query.status }}
+                    
+                        <!-- Engineer Column with Smaller Width -->
+                        <td v-if="visibleColumns.engineer" data-label="Engineer" style="width: 100px;">
+                            <select v-model="tempQueries[query.id].engineer" class="form-control">
+                                <option disabled value="">Select Engineer</option>
+                                <option value="Jack">Jack</option>
+                                <option value="Sean">Sean</option>
+                                <option value="Nik">Nik</option>
+                                <option value="Sean + Jack">Sean + Jack</option>
+                                <option value="Nik + Sean">Nik + Sean</option>
+                                <option value="Nik + Jack">Nik + Jack</option>
+                                <option value="Full Squad">Full Squad</option>
+                            </select>
                         </td>
-                        <td v-if="visibleColumns.resolvement">
-                            <textarea v-model="query.resolvement" @blur="updateResolvement(query)"
-                                @input="adjustTextareaHeight" class="resolvement-input"
-                                style="resize: none; overflow-y: auto; max-height: 300px;"
-                                placeholder="Enter resolvement detail"></textarea>
+                    
+                        <!-- Status Column with Conditional Styling -->
+                        <td v-if="visibleColumns.status" 
+                            :class="{
+                                'status-open': tempQueries[query.id].status === 'Open',
+                                'status-inprogress': tempQueries[query.id].status === 'In Progress',
+                                'status-completed': tempQueries[query.id].status === 'Completed',
+                                'status-withdrawn': tempQueries[query.id].status === 'Withdrawn'
+                            }" 
+                            @click="updateStatus(query)">
+                            {{ tempQueries[query.id].status }}
+                        </td>
+                    
+                        <!-- Resolvement Column with Larger Textarea for Mobile -->
+                        <td v-if="visibleColumns.resolvement" data-label="Resolvement">
+                            <textarea v-model="tempQueries[query.id].resolvement"
+                                      @input="adjustTextareaHeight" class="resolvement-input"
+                                      style="resize: none; overflow-y: auto; max-height: 300px; width: 100%;"
+                                      placeholder="Enter resolvement detail"></textarea>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
-
-    <footer class="bg-dark text-white text-center py-3 mt-4">
-        <p>&copy; 2023 H.W. Kaufman Group IT Support. All rights reserved.</p>
-    </footer>
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>

@@ -129,8 +129,8 @@ app.get('/ticket', auth.ensureAuthenticated, (req, res) => {
 });
 
 // Route to serve the FAQ page
-app.get('/FAQ', auth.ensureAuthenticated, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/pages/FAQ.html'));
+app.get('/IT-FAQ', auth.ensureAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/pages/IT-FAQ.html'));
 });
 
 // Check if the authenticated user is an admin
@@ -139,19 +139,20 @@ app.get('/api/is-admin', auth.ensureAuthenticated, (req, res) => {
     res.json({ isAdmin });
 });
 
-// API endpoint to get all queries
 app.get('/api/queries', (req, res) => {
     const filePath = path.join(__dirname, 'queries.json');
-    let data = [];
     try {
-        data = require(filePath);
+        // Read file contents each time to avoid caching
+        const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
         // Sort queries by timestamp from most recent to least recent
         data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        res.json(data);
     } catch (err) {
         console.error('Error loading data file:', err);
+        res.status(500).json({ success: false, message: 'Failed to load queries.' });
     }
-    res.json(data);
 });
+
 
 // Route to serve the admin page (protected)
 app.get('/admin', auth.ensureAuthenticated, ensureAdmin, (req, res) => {
@@ -319,6 +320,33 @@ console.log('Received files:', req.files);
     } catch (err) {
         console.error('Error handling form submission:', err);
         res.status(400).json({ success: false, message: err.message || 'Failed to process form submission.' });
+    }
+});
+
+app.post('/api/update-queries', (req, res) => {
+    const updates = req.body.updates;
+    const filePath = path.join(__dirname, 'queries.json');
+
+    try {
+        let queries = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+
+        updates.forEach(update => {
+            const queryIndex = queries.findIndex(query => query.id === update.id);
+            if (queryIndex !== -1) {
+                queries[queryIndex] = update;
+            }
+        });
+
+        fs.writeFileSync(filePath, JSON.stringify(queries, null, 2));
+
+        // Emit update to all clients through WebSocket
+        io.emit('queriesUpdated', queries);
+        console.log('Emitting queriesUpdated event');  // Log for debugging
+
+        res.json({ success: true, message: 'All changes saved successfully.' });
+    } catch (err) {
+        console.error('Error saving updates:', err);
+        res.status(500).json({ success: false, message: 'Failed to save changes.' });
     }
 });
 

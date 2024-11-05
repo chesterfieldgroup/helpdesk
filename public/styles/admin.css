@@ -1,0 +1,44 @@
+/* Specific styles for different status values */
+.table td.status-open,
+.table td[data-label="Status"].status-open {
+    background-color: #ffcccc !important;
+    color: red !important;
+}
+
+.table td.status-inprogress,
+.table td[data-label="Status"].status-inprogress {
+    background-color: #fff3cd !important;
+    color: orange !important;
+}
+
+.table td.status-completed,
+.table td[data-label="Status"].status-completed {
+    background-color: #d4edda !important;
+    color: green !important;
+}
+
+.table td.status-withdrawn,
+.table td[data-label="Status"].status-withdrawn {
+    background-color: #f8d7da !important;
+    color: #721c24 !important;
+}
+
+
+/* Adjust column width for engineer */
+.table td[data-label="Engineer"] {
+    width: 100px;
+}
+
+.table td {
+    font-size: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    /* Increase size of resolvement field */
+    .table td[data-label="Resolvement"] textarea.form-control {
+        min-height: 100px;
+        padding: 10px;
+        font-size: 1rem;
+    }
+}

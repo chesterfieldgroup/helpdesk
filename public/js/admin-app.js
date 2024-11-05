@@ -2,10 +2,13 @@ import { format } from 'https://cdn.jsdelivr.net/npm/date-fns@2.23.0/esm/index.j
 import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js'; // Import Vue as ES module
 
 document.addEventListener('DOMContentLoaded', () => {
+    const socket = io(); // Connect to WebSocket server
+
     new Vue({
         el: '#admin-app',
         data: {
             queries: [],
+            tempQueries: {},
             sortOrder: 'desc', // Default sort order
             visibleColumns: {
                 id: true,
@@ -29,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showFilters: false,  // Control the visibility of the filter panel
         },
         created() {
-        // Load column visibility settings from localStorage
+            // Load column visibility settings from localStorage
             try {
                 const savedVisibleColumns = localStorage.getItem('visibleColumns');
                 if (savedVisibleColumns) {
@@ -38,17 +41,35 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 console.error("Error loading column visibility settings from localStorage:", error);
             }
-
+        
             this.fetchQueries();
+    
+            socket.on('queriesUpdated', (updatedQueries) => {
+                console.log('Received queriesUpdated event');
+                
+                // Re-assign queries and tempQueries with fresh data
+                this.queries = [];
+                this.tempQueries = {};
+            
+                this.$nextTick(() => {  // Force re-render after emptying the array
+                    this.queries = updatedQueries;
+                    this.tempQueries = this.queries.reduce((acc, query) => {
+                        acc[query.id] = { ...query };
+                        return acc;
+                    }, {});
+                });
+            });
+            
+            
         },
         watch: {
-        // Watch for changes in visibleColumns and save to localStorage
-        visibleColumns: {
-            handler(newValue) {
-                localStorage.setItem('visibleColumns', JSON.stringify(newValue));
-            },
-            deep: true // This ensures nested properties are observed
-        }
+            // Watch for changes in visibleColumns and save to localStorage
+            visibleColumns: {
+                handler(newValue) {
+                    localStorage.setItem('visibleColumns', JSON.stringify(newValue));
+                },
+                deep: true // This ensures nested properties are observed
+            }
         },
         computed: {
             sortedQueries() {
@@ -71,11 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return filteredQueries.slice().sort((a, b) => {
                     const dateA = new Date(a.timestamp);
                     const dateB = new Date(b.timestamp);
-                    if (this.sortOrder === 'asc') {
-                        return dateA - dateB;
-                    } else {
-                        return dateB - dateA;
-                    }
+                    return this.sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
                 });
             }
         },
@@ -88,19 +105,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const response = await fetch('/api/queries');
                     const queries = await response.json();
-                    queries.forEach(query => query.showImage = false); 
                     this.queries = queries;
-
-                    // Adjust the textarea heights after queries have been fetched
-                    this.$nextTick(() => {
-                        const textareas = document.querySelectorAll('.resolvement-input');
-                        textareas.forEach(textarea => {
-                            textarea.style.height = 'auto';
-                            textarea.style.height = textarea.scrollHeight + 'px';
-                        });
-                    });
+    
+                    // Initialize tempQueries with a deep copy of queries
+                    this.tempQueries = this.queries.reduce((acc, query) => {
+                        acc[query.id] = { ...query };
+                        return acc;
+                    }, {});
                 } catch (error) {
                     console.error('Error fetching queries:', error);
+                }
+            },
+            saveAllChanges() {
+                const updates = Object.values(this.tempQueries).filter((tempQuery) => {
+                    const originalQuery = this.queries.find(query => query.id === tempQuery.id);
+                    // Ensure updates only include modified fields
+                    return JSON.stringify(tempQuery) !== JSON.stringify(originalQuery);
+                });
+                
+                // Apply each update from tempQueries to queries before sending to server
+                updates.forEach(updatedQuery => {
+                    const index = this.queries.findIndex(query => query.id === updatedQuery.id);
+                    if (index !== -1) {
+                        this.queries[index] = { ...updatedQuery };
+                    }
+                });
+            
+                this.updateQueriesOnServer(updates);
+            },
+            async updateQueriesOnServer(updates) {
+                try {
+                    const sanitizedUpdates = updates.map(update => {
+                        return {
+                            ...update,
+                            resolvement: update.resolvement.replace(/\s+/g, ' ').trim()  // Sanitize new lines/spaces
+                        };
+                    });
+                    await fetch(`/api/update-queries`, { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ updates: sanitizedUpdates })
+                    });
+                    console.log('All changes successfully saved on the server.');
+                } catch (error) {
+                    console.error('Failed to save changes:', error);
                 }
             },
             formatTimestamp(timestamp) {
@@ -110,43 +158,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 return /\.(jpg|jpeg|png|gif)$/i.test(filePath);
             },
             statusClass(query) {
-                if (query.status === 'Open') {
-                    return 'your-custom-class-for-open'; // Replace with your class
-                } else if (query.status === 'In Progress') {
-                    return 'your-custom-class-for-in-progress'; // Replace with your class
-                } else if (query.status === 'Completed') {
-                    return 'your-custom-class-for-completed'; // Replace with your class
-                } else if (query.status === 'Withdrawn') {
-                    return 'your-custom-class-for-withdrawn'; // Replace with your class
-                } else {
-                    return ''; // Default class
+                switch(query.status) {
+                    case 'Open': return 'status-open';
+                    case 'In Progress': return 'status-inprogress';
+                    case 'Completed': return 'status-completed';
+                    case 'Withdrawn': return 'status-withdrawn';
+                    default: return '';
                 }
             },
             updateStatus(query) {
-                if (query.status === 'Withdrawn') {
-                    console.log('Cannot change status of a withdrawn ticket.');
-                return; // Prevent status change if the ticket is withdrawn
-                }
-
                 const statusOptions = ["Open", "In Progress", "Completed"];
-                let nextStatusIndex = (statusOptions.indexOf(query.status) + 1) % statusOptions.length;
-                query.status = statusOptions[nextStatusIndex];
-                this.saveQuery(query);
+                let nextStatusIndex = (statusOptions.indexOf(this.tempQueries[query.id].status) + 1) % statusOptions.length;
+                this.tempQueries[query.id].status = statusOptions[nextStatusIndex];
             },
             adjustTextareaHeight(event) {
                 const element = event.target;
-                element.style.height = 'auto'; // Reset height to recalculate
-                element.style.height = element.scrollHeight + 'px'; // Set new height based on content
+                element.style.height = 'auto';
+                element.style.height = `${element.scrollHeight}px`;
             },
             toggleImageVisibility(query) {
                 Vue.set(query, 'showImage', !query.showImage);
             },
             updateEngineer(query) {
-                const engineers = ["Jack", "Sean", "Nik", "Sean + Jack", "Nik + Sean", "Nik + Jack", "Full Squad"];  // Array of possible engineers
-                let currentEngineerIndex = engineers.indexOf(query.engineer);  // Get current index
-                let nextEngineerIndex = (currentEngineerIndex + 1) % engineers.length;  // Calculate next index
-                query.engineer = engineers[nextEngineerIndex];  // Update to the next engineer
-                this.saveQuery(query);  // Save the update
+                const engineers = ["Jack", "Sean", "Nik", "Sean + Jack", "Nik + Sean", "Nik + Jack", "Full Squad"];
+                let currentEngineerIndex = engineers.indexOf(this.tempQueries[query.id].engineer);
+                let nextEngineerIndex = (currentEngineerIndex + 1) % engineers.length;
+                this.tempQueries[query.id].engineer = engineers[nextEngineerIndex];
             },
             updateResolvement(query) {
                 this.saveQuery(query);
@@ -158,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(query)
                     });
-                    this.fetchQueries(); // Reload queries to reflect changes
+                    this.fetchQueries();
                 } catch (error) {
                     console.error('Failed to save query:', error);
                 }
